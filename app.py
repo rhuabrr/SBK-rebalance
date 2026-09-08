@@ -113,7 +113,7 @@ edited_df = st.data_editor(
     num_rows="dynamic",
     column_config={
         "Category": st.column_config.TextColumn(
-            "หมวดหมู่ (Category)",
+            "หมวดหมู่ (Category)", required=True
         ),
         "Ticker": st.column_config.TextColumn(
             "ชื่อหุ้น (Ticker)", required=True
