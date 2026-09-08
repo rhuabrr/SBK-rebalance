@@ -78,6 +78,8 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
         tickers_to_fetch = tickers + ["THB=X"]
 
         prices = {}
+        
+        # วนดึงทีละตัว ป้องกันปัญหา DataFrame ตีกัน
         for t in tickers_to_fetch:
             try:
                 ticker_obj = yf.Ticker(t)
@@ -90,6 +92,7 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
             except Exception:
                 prices[t] = 0.0
 
+        # ดึงเรทเงินบาท
         raw_rate = prices.get("THB=X", 34.5)
         usd_thb = float(raw_rate) if (pd.notna(raw_rate) and raw_rate > 0) else 34.5
 
@@ -245,29 +248,7 @@ if "df_res" in st.session_state:
         return ''
 
     st.subheader("📋 แผนการ Rebalance รายหุ้น")
-    
-    # เพิ่มตัวเลือกระบบเรียงลำดับตารางผลลัพธ์
-    sort_col1, sort_col2 = st.columns([2, 4])
-    with sort_col1:
-        sort_by_option = st.selectbox(
-            "🔀 เรียงลำดับตาม:",
-            ["สัดส่วนปัจจุบัน (% มาก -> น้อย)", "สัดส่วนเป้าหมาย (Target % มาก -> น้อย)", "มูลค่าปัจจุบัน ($ มาก -> น้อย)", "ชื่อหุ้น (Ticker A-Z)", "หมวดหมู่ (Category)"]
-        )
-
-    # จัดเรียง DataFrame ตามตัวเลือก
-    df_display = df_res.drop(columns=["Current_Pct_Num", "Target_Pct_Num"])
-    if "สัดส่วนปัจจุบัน" in sort_by_option:
-        df_display = df_display.sort_values(by="Current %", ascending=False)
-    elif "สัดส่วนเป้าหมาย" in sort_by_option:
-        df_display = df_display.sort_values(by="Target %", ascending=False)
-    elif "มูลค่าปัจจุบัน" in sort_by_option:
-        df_display = df_display.sort_values(by="Current Val ($)", ascending=False)
-    elif "ชื่อหุ้น" in sort_by_option:
-        df_display = df_display.sort_values(by="Ticker", ascending=True)
-    elif "หมวดหมู่" in sort_by_option:
-        df_display = df_display.sort_values(by="Category", ascending=True)
-
     st.dataframe(
-        df_display.style.map(highlight_action, subset=['Action']),
+        df_res.drop(columns=["Current_Pct_Num", "Target_Pct_Num"]).style.map(highlight_action, subset=['Action']),
         use_container_width=True
     )
