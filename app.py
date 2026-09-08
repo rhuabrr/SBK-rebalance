@@ -1,65 +1,168 @@
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 import yfinance as yf
 
-st.set_page_config(page_title="Portfolio Rebalance", layout="wide")
+st.set_page_config(
+    page_title="Portfolio Rebalance", layout="wide", page_icon="📈"
+)
 
-st.title("🤖 แอป Rebalance พอร์ตส่วนตัว (Real-time)")
+st.title("🤖 แอป Rebalance พอร์ตส่วนตัว (พร้อมชาร์ทวิเคราะห์)")
 
-# ข้อมูลตั้งต้น
+# 1. ข้อมูลตั้งต้นพร้อมหมวดหมู่ (Category)
 default_data = [
-    {"Ticker": "PHYS", "Shares": 590, "Target %": 24.0, "Lock": False},
-    {"Ticker": "PSLV", "Shares": 557, "Target %": 16.0, "Lock": False},
-    {"Ticker": "AGI", "Shares": 326, "Target %": 12.0, "Lock": False},
-    {"Ticker": "AEM", "Shares": 0, "Target %": 9.0, "Lock": False},
-    {"Ticker": "GDX", "Shares": 0, "Target %": 9.0, "Lock": False},
-    {"Ticker": "FNV", "Shares": 0, "Target %": 8.0, "Lock": False},
-    {"Ticker": "WPM", "Shares": 0, "Target %": 7.0, "Lock": False},
-    {"Ticker": "RGLD", "Shares": 0, "Target %": 5.0, "Lock": False},
-    {"Ticker": "COIN", "Shares": 35, "Target %": 10.0, "Lock": True},
-    {"Ticker": "BKR", "Shares": 15, "Target %": 0.0, "Lock": False},
-    {"Ticker": "SQM", "Shares": 12, "Target %": 0.0, "Lock": False},
-    {"Ticker": "NPKI", "Shares": 32, "Target %": 0.0, "Lock": False},
+    # PHYSICAL
+    {
+        "Category": "PHYSICAL",
+        "Ticker": "PHYS",
+        "Shares": 590,
+        "Target %": 24.0,
+        "Lock": False,
+    },
+    {
+        "Category": "PHYSICAL",
+        "Ticker": "PSLV",
+        "Shares": 557,
+        "Target %": 16.0,
+        "Lock": False,
+    },
+    # MINERS
+    {
+        "Category": "MINERS",
+        "Ticker": "AGI",
+        "Shares": 326,
+        "Target %": 12.0,
+        "Lock": False,
+    },
+    {
+        "Category": "MINERS",
+        "Ticker": "AEM",
+        "Shares": 0,
+        "Target %": 9.0,
+        "Lock": False,
+    },
+    {
+        "Category": "MINERS",
+        "Ticker": "GDX",
+        "Shares": 0,
+        "Target %": 9.0,
+        "Lock": False,
+    },
+    # ROYALTY
+    {
+        "Category": "ROYALTY",
+        "Ticker": "FNV",
+        "Shares": 0,
+        "Target %": 8.0,
+        "Lock": False,
+    },
+    {
+        "Category": "ROYALTY",
+        "Ticker": "WPM",
+        "Shares": 0,
+        "Target %": 7.0,
+        "Lock": False,
+    },
+    {
+        "Category": "ROYALTY",
+        "Ticker": "RGLD",
+        "Shares": 0,
+        "Target %": 5.0,
+        "Lock": False,
+    },
+    # CRYPTO
+    {
+        "Category": "CRYPTO",
+        "Ticker": "COIN",
+        "Shares": 35,
+        "Target %": 10.0,
+        "Lock": True,
+    },
+    # OTHERS / CUT OFF
+    {
+        "Category": "OTHERS",
+        "Ticker": "BKR",
+        "Shares": 15,
+        "Target %": 0.0,
+        "Lock": False,
+    },
+    {
+        "Category": "OTHERS",
+        "Ticker": "SQM",
+        "Shares": 12,
+        "Target %": 0.0,
+        "Lock": False,
+    },
+    {
+        "Category": "OTHERS",
+        "Ticker": "NPKI",
+        "Shares": 32,
+        "Target %": 0.0,
+        "Lock": False,
+    },
 ]
 
-st.sidebar.header("⚙️ การตั้งค่าพอร์ต")
+st.sidebar.header("⚙️ ตั้งค่าเงินสด")
 cash_input = st.sidebar.number_input("เงินสดคงเหลือ ($)", value=0.0, step=100.0)
 
-# แสดงตารางให้ผู้ใช้แก้ไขจำนวนหุ้นและ Target % ได้จากหน้าเว็บ
-st.subheader("📌 แก้ไขจำนวนหุ้น & Target % ได้ตรงนี้")
+st.subheader("📌 แก้ไขหมวดหมู่ / Ticker / หุ้น / Target % (กด + เพิ่มบรรทัดได้)")
 df_input = pd.DataFrame(default_data)
+
 edited_df = st.data_editor(
     df_input,
     num_rows="dynamic",
     column_config={
-        "Lock": st.column_config.CheckboxColumn("🔒 Lock (ไม่ขาย)", default=False)
+        "Category": st.column_config.SelectboxColumn(
+            "หมวดหมู่ (Category)",
+            options=["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "OTHERS"],
+            required=True,
+        ),
+        "Ticker": st.column_config.TextColumn(
+            "ชื่อหุ้น (Ticker)", required=True
+        ),
+        "Shares": st.column_config.NumberColumn("จำนวนหุ้น", min_value=0),
+        "Target %": st.column_config.NumberColumn("Target %", min_value=0.0),
+        "Lock": st.column_config.CheckboxColumn(
+            "🔒 Lock (ไม่ขาย)", default=False
+        ),
     },
     use_container_width=True,
 )
 
 if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance", type="primary"):
     with st.spinner("กำลังดึงราคาล่าสุดจาก Yahoo Finance..."):
-        tickers = edited_df["Ticker"].tolist()
+        edited_df["Ticker"] = edited_df["Ticker"].str.strip().str.upper()
+        tickers = edited_df["Ticker"].unique().tolist()
+
         try:
-            prices = yf.download(tickers, period="1d")["Close"].iloc[-1]
+            price_data = yf.download(tickers, period="1d")["Close"]
+            if isinstance(price_data, pd.DataFrame):
+                prices = price_data.iloc[-1].to_dict()
+            else:
+                prices = {tickers[0]: price_data.iloc[-1]}
         except Exception as e:
-            st.error(f"เกิดข้อผิดพลาดในการดึงราคา: {e}")
+            st.error(
+                f"เกิดข้อผิดพลาดในการดึงราคา โปรดเช็คชื่อ Ticker อีกครั้ง: {e}"
+            )
             st.stop()
 
         total_val = cash_input
         temp_data = []
 
         for _, row in edited_df.iterrows():
+            cat = row["Category"]
             t = row["Ticker"]
             s = row["Shares"]
             tgt = row["Target %"]
             lock = row["Lock"]
-            p = float(prices[t])
+
+            p = float(prices.get(t, 0.0))
             curr_v = s * p
             total_val += curr_v
 
             temp_data.append(
                 {
+                    "Category": cat,
                     "Ticker": t,
                     "Price": p,
                     "Shares": s,
@@ -70,15 +173,21 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
             )
 
         results = []
+        cat_summary = {}
+
         for item in temp_data:
-            curr_pct = (item["Curr_Val"] / total_val * 100.0) if total_val > 0 else 0
+            curr_pct = (
+                (item["Curr_Val"] / total_val * 100.0) if total_val > 0 else 0
+            )
             target_val = total_val * (item["Target_Pct"] / 100.0)
 
             if item["Lock"]:
                 diff_s = 0
                 action = "HOLD (0)"
             else:
-                target_shares = round(target_val / item["Price"])
+                target_shares = (
+                    round(target_val / item["Price"]) if item["Price"] > 0 else 0
+                )
                 diff_s = target_shares - item["Shares"]
                 if diff_s > 0:
                     action = f"BUY +{diff_s}"
@@ -91,18 +200,104 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
 
             results.append(
                 {
+                    "Category": item["Category"],
                     "Ticker": item["Ticker"],
                     "Price ($)": round(item["Price"], 2),
                     "Shares": item["Shares"],
                     "Current Val ($)": round(item["Curr_Val"], 2),
+                    "Current_Pct_Num": curr_pct,
                     "Current %": f"{curr_pct:.1f}%",
+                    "Target_Pct_Num": item["Target_Pct"],
                     "Target %": f"{item['Target_Pct']:.1f}%",
                     "Action": action,
                     "Est Amount ($)": round(diff_v, 2),
                 }
             )
 
+            cat = item["Category"]
+            if cat not in cat_summary:
+                cat_summary[cat] = {"Curr_Val": 0.0, "Target_Pct": 0.0}
+            cat_summary[cat]["Curr_Val"] += item["Curr_Val"]
+            cat_summary[cat]["Target_Pct"] += item["Target_Pct"]
+
+        df_res = pd.DataFrame(results)
+
         st.divider()
         st.metric("💰 มูลค่าพอร์ตรวมทั้งหมด", f"${total_val:,.2f}")
-        st.subheader("📊 ผลลัพธ์แผน Rebalance")
-        st.dataframe(pd.DataFrame(results), use_container_width=True)
+
+        # 📊 ส่วนแสดงผลชาร์ท (Charts)
+        st.subheader("📊 เปรียบเทียบสัดส่วนพอร์ต (Current vs Target)")
+
+        tab1, tab2 = st.tabs(
+            ["สัดส่วนรายกลุ่ม (Category)", "สัดส่วนรายหุ้น (Tickers)"]
+        )
+
+        with tab1:
+            col1, col2 = st.columns(2)
+            cat_rows = []
+            for cat_name, c_data in cat_summary.items():
+                c_pct = (
+                    (c_data["Curr_Val"] / total_val * 100.0)
+                    if total_val > 0
+                    else 0
+                )
+                cat_rows.append(
+                    {
+                        "Category": cat_name,
+                        "Current Val ($)": round(c_data["Curr_Val"], 2),
+                        "Current_Pct": c_pct,
+                        "Target_Pct": c_data["Target_Pct"],
+                    }
+                )
+            df_cat = pd.DataFrame(cat_rows)
+
+            with col1:
+                fig_cat_curr = px.pie(
+                    df_cat,
+                    values="Current_Pct",
+                    names="Category",
+                    title="สัดส่วนปัจจุบัน (Current Category %)",
+                    hole=0.4,
+                )
+                st.plotly_chart(fig_cat_curr, use_container_width=True)
+
+            with col2:
+                fig_cat_tgt = px.pie(
+                    df_cat,
+                    values="Target_Pct",
+                    names="Category",
+                    title="สัดส่วนเป้าหมาย (Target Category %)",
+                    hole=0.4,
+                )
+                st.plotly_chart(fig_cat_tgt, use_container_width=True)
+
+        with tab2:
+            col3, col4 = st.columns(2)
+            with col3:
+                fig_tk_curr = px.pie(
+                    df_res[df_res["Current_Pct_Num"] > 0],
+                    values="Current_Pct_Num",
+                    names="Ticker",
+                    title="สัดส่วนหุ้นปัจจุบัน (Current Tickers %)",
+                    hole=0.4,
+                )
+                st.plotly_chart(fig_tk_curr, use_container_width=True)
+
+            with col4:
+                fig_tk_tgt = px.pie(
+                    df_res[df_res["Target_Pct_Num"] > 0],
+                    values="Target_Pct_Num",
+                    names="Ticker",
+                    title="สัดส่วนหุ้นเป้าหมาย (Target Tickers %)",
+                    hole=0.4,
+                )
+                st.plotly_chart(fig_tk_tgt, use_container_width=True)
+
+        # 📋 แสดงตารางผลลัพธ์
+        st.subheader("📋 แผนการ Rebalance รายหุ้น")
+        st.dataframe(
+            df_res.drop(
+                columns=["Current_Pct_Num", "Target_Pct_Num"]
+            ),  # ซ่อนคอลัมน์ตัวเลขที่ใช้ทำชาร์ท
+            use_container_width=True,
+        )
