@@ -257,6 +257,9 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                     title="สัดส่วนปัจจุบัน (Current Category %)",
                     hole=0.4,
                 )
+                fig_cat_curr.update_traces(
+                    hovertemplate="<b>%{label}</b><br>สัดส่วนปัจจุบัน: %{value:.2f}%<extra></extra>"
+                )
                 st.plotly_chart(fig_cat_curr, use_container_width=True)
 
             with col2:
@@ -266,6 +269,9 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                     names="Category",
                     title="สัดส่วนเป้าหมาย (Target Category %)",
                     hole=0.4,
+                )
+                fig_cat_tgt.update_traces(
+                    hovertemplate="<b>%{label}</b><br>สัดส่วนเป้าหมาย: %{value:.2f}%<extra></extra>"
                 )
                 st.plotly_chart(fig_cat_tgt, use_container_width=True)
 
