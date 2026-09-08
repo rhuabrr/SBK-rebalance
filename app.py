@@ -230,15 +230,15 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                 {
                     "Category": item["Category"],
                     "Ticker": item["Ticker"],
-                    "Price ($)": round(item["Price"], 2),
+                    "Price ($)": round(float(item["Price"]), 2),
                     "Shares": item["Shares"],
-                    "Current Val ($)": round(item["Curr_Val"], 2),
+                    "Current Val ($)": round(float(item["Curr_Val"]), 2),
                     "Current_Pct_Num": curr_pct,
                     "Current %": f"{curr_pct:.1f}%",
                     "Target_Pct_Num": item["Target_Pct"],
                     "Target %": f"{item['Target_Pct']:.1f}%",
                     "Action": action,
-                    "Est Amount ($)": round(diff_v, 2),
+                    "Est Amount ($)": round(float(diff_v), 2),
                 }
             )
 
