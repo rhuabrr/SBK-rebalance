@@ -248,14 +248,14 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
             cat_summary[cat]["Curr_Val"] += item["Curr_Val"]
             cat_summary[cat]["Target_Pct"] += item["Target_Pct"]
 
-            df_res = pd.DataFrame(results)
-    
-            st.divider()
-            # วางโค้ดการ์ดสรุปตรงนี้ครับ (ให้ย่อหน้าตรงกับ st.divider)
-            m1, m2, m3 = st.columns(3)
-            m1.metric("💰 มูลค่าพอร์ตรวม", f"${total_val:,.2f}")
-            m2.metric("💵 เงินสดในพอร์ต", f"${cash_input:,.2f}")
-            m3.metric("📦 รายการสินทรัพย์", f"{len(df_res)} ตัว")
+        df_res = pd.DataFrame(results)
+
+        st.divider()
+        # วางโค้ดการ์ดสรุปตรงนี้ครับ (ให้ย่อหน้าตรงกับ st.divider)
+        m1, m2, m3 = st.columns(3)
+        m1.metric("💰 มูลค่าพอร์ตรวม", f"${total_val:,.2f}")
+        m2.metric("💵 เงินสดในพอร์ต", f"${cash_input:,.2f}")
+        m3.metric("📦 รายการสินทรัพย์", f"{len(df_res)} ตัว")
        
         # 📊 ส่วนแสดงผลชาร์ท (Charts)
         st.subheader("📊 เปรียบเทียบสัดส่วนพอร์ต (Current vs Target)")
