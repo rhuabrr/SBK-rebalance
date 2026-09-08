@@ -63,7 +63,7 @@
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
   .field{flex:1;min-width:140px;}
   label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
-  input[type=text], input[type=number], input[type=password]{
+  input[type=text], input[type=number], select{
     width:100%;
     background:var(--panel-2);
     border:1px solid var(--line);
@@ -73,14 +73,8 @@
     font-family:'JetBrains Mono',monospace;
     font-size:14px;
   }
-  input:focus{outline:2px solid var(--gold-dim);outline-offset:1px;}
-  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
-  .hint a{color:var(--gold);}
-
-  details summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;}
-  details summary::-webkit-details-marker{display:none;}
-  details summary::before{content:"⚙ ";}
-  details[open] summary{margin-bottom:12px;}
+  select {appearance:none; background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B93A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat:no-repeat; background-position:right 10px center; background-size:16px; padding-right:30px;}
+  input:focus, select:focus{outline:2px solid var(--gold-dim);outline-offset:1px;}
 
   /* Portfolio Input Cards for Mobile */
   .holding-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
@@ -105,7 +99,7 @@
   .field-group.small-field{flex:1;}
 
   .holding-card label{font-size:11px;margin-bottom:3px;color:var(--muted);}
-  .holding-card input{padding:8px 8px;font-size:13px;}
+  .holding-card input, .holding-card select{padding:8px 8px;font-size:13px;}
   
   .card-actions {
     display:flex;
@@ -202,25 +196,13 @@
   </header>
 
   <div class="panel">
-    <h2>เงินสด &amp; แหล่งราคา</h2>
+    <h2>เงินสดในพอร์ต</h2>
     <div class="row">
       <div class="field">
         <label>เงินสดคงเหลือ ($)</label>
         <input type="number" id="cashInput" value="0" step="100">
       </div>
     </div>
-    <details style="margin-top:14px;">
-      <summary>ตั้งค่าการดึงราคาอัตโนมัติ (ไม่บังคับ)</summary>
-      <div class="field">
-        <label>Finnhub API Key</label>
-        <input type="password" id="apiKey" placeholder="วางคีย์ฟรีจาก finnhub.io ที่นี่">
-      </div>
-      <p class="hint">
-        ถ้าไม่ใส่คีย์ ก็ยังใช้แอปได้ปกติ — แค่กรอกราคาเองในช่อง Price ของแต่ละรายการ<br>
-        ขอคีย์ฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> (สมัครฟรี ใช้เวลา ~1 นาที)<br>
-        อัตราแลกเปลี่ยน USD→THB ดึงจาก frankfurter.app ให้อัตโนมัติ ไม่ต้องใช้คีย์
-      </p>
-    </details>
   </div>
 
   <div class="panel">
@@ -229,7 +211,7 @@
     <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
   </div>
 
-  <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคา & คำนวณ Rebalance</button>
+  <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคาอัตโนมัติ & คำนวณ Rebalance</button>
   <p class="status-line" id="statusLine"></p>
 
   <div id="results" style="display:none;">
@@ -275,6 +257,10 @@
 </div>
 
 <script>
+// ฝัง API Key ถาวรตรงนี้
+const FINNHUB_API_KEY = "dafsnk1r01quvmmhdhvgdafsnk1r01quvmmhdi00";
+const CATEGORIES = ["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "OTHERS"];
+
 const DEFAULT_DATA = [
   {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false},
   {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false},
@@ -290,22 +276,42 @@ const DEFAULT_DATA = [
   {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false},
 ];
 
-let rows = JSON.parse(JSON.stringify(DEFAULT_DATA));
-let charts = {};
+// โหลดพอร์ตและเงินสดจาก localStorage (จำค่าล่าสุดอัตโนมัติ)
+let savedRows = localStorage.getItem('bullion_portfolio_rows');
+let rows = savedRows ? JSON.parse(savedRows) : JSON.parse(JSON.stringify(DEFAULT_DATA));
 
+let savedCash = localStorage.getItem('bullion_cash_balance');
+if(savedCash !== null) {
+  document.getElementById('cashInput').value = savedCash;
+}
+
+document.getElementById('cashInput').addEventListener('input', e => {
+  localStorage.setItem('bullion_cash_balance', e.target.value);
+});
+
+let charts = {};
 const body = document.getElementById('holdingsBody');
 const statusLine = document.getElementById('statusLine');
+
+function saveRows(){
+  localStorage.setItem('bullion_portfolio_rows', JSON.stringify(rows));
+}
 
 function renderRows(){
   body.innerHTML = '';
   rows.forEach((r, i) => {
+    const catOptions = CATEGORIES.map(c => `<option value="${c}" ${r.cat === c ? 'selected' : ''}>${c}</option>`).join('');
+    
     const card = document.createElement('div');
     card.className = 'holding-card';
     card.innerHTML = `
       <div class="card-row">
         <div class="field-group cat-field">
           <label>Category</label>
-          <input type="text" data-i="${i}" data-f="cat" value="${r.cat}">
+          <select data-i="${i}" data-f="cat">
+            ${catOptions}
+            ${!CATEGORIES.includes(r.cat) && r.cat ? `<option value="${r.cat}" selected>${r.cat}</option>` : ''}
+          </select>
         </div>
         <div class="field-group tk-field">
           <label>Ticker</label>
@@ -337,26 +343,29 @@ function renderRows(){
     body.appendChild(card);
   });
 
-  body.querySelectorAll('input').forEach(inp => {
-    inp.addEventListener('change', e => {
+  body.querySelectorAll('input, select').forEach(elm => {
+    elm.addEventListener('change', e => {
       const i = +e.target.dataset.i, f = e.target.dataset.f;
       if (f === 'lock') rows[i][f] = e.target.checked;
       else if (f === 'cat' || f === 'tk') rows[i][f] = e.target.value.trim();
       else rows[i][f] = parseFloat(e.target.value) || 0;
       if (f === 'tk') rows[i].tk = rows[i].tk.toUpperCase();
+      saveRows();
     });
   });
   body.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       rows.splice(+e.target.dataset.i, 1);
       renderRows();
+      saveRows();
     });
   });
 }
 
 document.getElementById('addRowBtn').addEventListener('click', () => {
-  rows.push({cat:"", tk:"", price:0, shares:0, tgt:0, lock:false});
+  rows.push({cat:"PHYSICAL", tk:"", price:0, shares:0, tgt:0, lock:false});
   renderRows();
+  saveRows();
 });
 
 renderRows();
@@ -370,9 +379,9 @@ async function fetchRate(){
   }catch(e){ return 34.5; }
 }
 
-async function fetchPrice(ticker, apiKey){
+async function fetchPrice(ticker){
   try{
-    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${apiKey}`);
+    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${FINNHUB_API_KEY}`);
     const j = await res.json();
     return (j && j.c && j.c > 0) ? j.c : null;
   }catch(e){ return null; }
@@ -408,24 +417,20 @@ document.getElementById('tabTk').addEventListener('click', () => {
 document.getElementById('calcBtn').addEventListener('click', async () => {
   const btn = document.getElementById('calcBtn');
   btn.disabled = true;
-  const apiKey = document.getElementById('apiKey').value.trim();
   const cashInput = parseFloat(document.getElementById('cashInput').value) || 0;
 
   statusLine.textContent = 'กำลังดึงอัตราแลกเปลี่ยน...';
   const usdThb = await fetchRate();
 
-  if (apiKey){
-    for (let i = 0; i < rows.length; i++){
-      if (!rows[i].tk) continue;
-      statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
-      const p = await fetchPrice(rows[i].tk, apiKey);
-      if (p !== null) rows[i].price = p;
-      await new Promise(r => setTimeout(r, 120));
-    }
-    renderRows();
-  } else {
-    statusLine.textContent = 'ไม่มี API key — ใช้ราคาที่กรอกไว้ในตาราง';
+  for (let i = 0; i < rows.length; i++){
+    if (!rows[i].tk) continue;
+    statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
+    const p = await fetchPrice(rows[i].tk);
+    if (p !== null) rows[i].price = p;
+    await new Promise(r => setTimeout(r, 120));
   }
+  renderRows();
+  saveRows();
 
   let totalVal = cashInput;
   const items = rows.filter(r => r.tk).map(r => {
@@ -505,7 +510,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   `).join('');
 
   document.getElementById('results').style.display = 'block';
-  statusLine.textContent = apiKey ? 'อัปเดตราคาล่าสุดแล้ว ✓' : 'คำนวณจากราคาที่กรอกเองแล้ว ✓';
+  statusLine.textContent = 'ดึงราคาและคำนวณเรียบร้อยแล้ว ✓';
   btn.disabled = false;
 });
 </script>
