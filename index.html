@@ -476,5 +476,14 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   btn.disabled = false;
 });
 </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./pwabuilder-sw.js')
+        .then(reg => console.log('Service Worker registered!'))
+        .catch(err => console.log('Service Worker registration failed: ', err));
+    });
+  }
+</script>
 </body>
 </html>
