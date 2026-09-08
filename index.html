@@ -355,6 +355,7 @@ function saveRows(){
 function renderRows(){
   body.innerHTML = '';
   rows.forEach((r, i) => {
+    const isCustom = !CATEGORIES.includes(r.cat) && r.cat !== '';
     const catOptions = CATEGORIES.map(c => `<option value="${c}" ${r.cat === c ? 'selected' : ''}>${c}</option>`).join('');
     
     const card = document.createElement('div');
@@ -363,10 +364,11 @@ function renderRows(){
       <div class="card-row">
         <div class="field-group cat-field">
           <label>Category</label>
-          <select data-i="${i}" data-f="cat">
+          <select data-i="${i}" data-f="cat-select">
             ${catOptions}
-            ${!CATEGORIES.includes(r.cat) && r.cat ? `<option value="${r.cat}" selected>${r.cat}</option>` : ''}
+            <option value="CUSTOM" ${isCustom ? 'selected' : ''}>+ พิมพ์เพิ่มเอง...</option>
           </select>
+          <input type="text" data-i="${i}" data-f="cat-custom" value="${r.cat}" placeholder="พิมพ์ชื่อกลุ่ม..." style="margin-top:6px; ${isCustom ? '' : 'display:none;'}">
         </div>
         <div class="field-group tk-field">
           <label>Ticker</label>
@@ -398,16 +400,37 @@ function renderRows(){
     body.appendChild(card);
   });
 
-  body.querySelectorAll('input, select').forEach(elm => {
-    elm.addEventListener('change', e => {
-      const i = +e.target.dataset.i, f = e.target.dataset.f;
-      if (f === 'lock') rows[i][f] = e.target.checked;
-      else if (f === 'cat' || f === 'tk') rows[i][f] = e.target.value.trim();
-      else rows[i][f] = parseFloat(e.target.value) || 0;
-      if (f === 'tk') rows[i].tk = rows[i].tk.toUpperCase();
+  body.querySelectorAll('select[data-f="cat-select"]').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const i = +e.target.dataset.i;
+      const val = e.target.value;
+      const customInput = body.querySelector(`input[data-i="${i}"][data-f="cat-custom"]`);
+      if(val === 'CUSTOM'){
+        customInput.style.display = 'block';
+        customInput.focus();
+        rows[i].cat = customInput.value.trim();
+      } else {
+        customInput.style.display = 'none';
+        rows[i].cat = val;
+      }
       saveRows();
     });
   });
+
+  body.querySelectorAll('input').forEach(elm => {
+    elm.addEventListener('change', e => {
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      if (f === 'lock') rows[i].lock = e.target.checked;
+      else if (f === 'cat-custom') rows[i].cat = e.target.value.trim();
+      else if (f === 'tk') {
+        rows[i].tk = e.target.value.trim().toUpperCase();
+      } else {
+        rows[i][f] = parseFloat(e.target.value) || 0;
+      }
+      saveRows();
+    });
+  });
+
   body.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       rows.splice(+e.target.dataset.i, 1);
