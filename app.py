@@ -78,12 +78,21 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
         tickers_to_fetch = tickers + ["THB=X"]
 
         try:
-            price_data = yf.download(tickers_to_fetch, period="1d")["Close"]
-            if isinstance(price_data, pd.DataFrame):
-                prices = price_data.iloc[-1].fillna(0.0).to_dict()
+            # ดึงข้อมูลและดึงเฉพาะคอลัมน์ Close ป้องกันปัญหา MultiIndex ผิดเพี้ยน
+            raw_data = yf.download(tickers_to_fetch, period="1d")
+            if isinstance(raw_data.columns, pd.MultiIndex):
+                price_data = raw_data["Close"]
             else:
-                val = price_data.iloc[-1]
-                prices = {tickers_to_fetch[0]: float(val) if pd.notna(val) else 0.0}
+                price_data = raw_data
+
+            prices = {}
+            for t in tickers_to_fetch:
+                if t in price_data.columns:
+                    val = price_data[t].iloc[-1]
+                    prices[t] = float(val) if pd.notna(val) else 0.0
+                else:
+                    prices[t] = 0.0
+
             raw_rate = prices.get("THB=X", 34.5)
             usd_thb = float(raw_rate) if (pd.notna(raw_rate) and raw_rate > 0) else 34.5
         except Exception as e:
