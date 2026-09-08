@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Bullion Ledger — Portfolio Rebalance</title>
+<title>Bullion Ledger — Portfolio & Economic Calendar</title>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -22,6 +22,7 @@
     --buy-bg:#0F2A20;
     --sell:#E5484D;
     --sell-bg:#341418;
+    --high-imp:#E5484D;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -182,6 +183,15 @@
   .action.sell{background:var(--sell-bg);color:var(--sell);}
   .action.hold{color:var(--muted);}
   .num{font-family:'JetBrains Mono',monospace;font-size:13px;}
+
+  /* Economic Calendar Styles */
+  .calendar-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
+  .calendar-table th, .calendar-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);}
+  .calendar-table th{color:var(--muted);font-weight:500;font-size:12px;}
+  .badge-imp{padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;}
+  .badge-high{background:var(--sell-bg);color:var(--high-imp);}
+  .badge-med{background:rgba(212,175,55,0.15);color:var(--gold);}
+
   footer{text-align:center;color:var(--muted);font-size:11.5px;margin-top:30px;}
 </style>
 </head>
@@ -190,8 +200,8 @@
 
   <header>
     <p class="eyebrow">PRIVATE LEDGER</p>
-    <h1>Portfolio Rebalance</h1>
-    <p class="sub">คำนวณแผนซื้อ/ขายเพื่อปรับพอร์ตให้ตรงเป้าหมาย — ดึงราคาออโต้และคำนวณในเครื่อง</p>
+    <h1>Portfolio &amp; Calendar</h1>
+    <p class="sub">คำนวณแผนซื้อ/ขาย Rebalance พอร์ตอัตโนมัติ พร้อมติดตามปฏิทินเศรษฐกิจสำคัญ</p>
   </header>
 
   <div class="panel">
@@ -252,7 +262,28 @@
     </div>
   </div>
 
-  <footer>ราคาปิดล่าสุดจาก Finnhub · อัตราแลกเปลี่ยนจาก frankfurter.app · คำนวณในเครื่องทั้งหมด</footer>
+  <div class="panel">
+    <h2>📅 ปฏิทินเศรษฐกิจสำคัญ (Economic Calendar)</h2>
+    <div style="overflow-x:auto;">
+      <table class="calendar-table">
+        <thead>
+          <tr>
+            <th>เวลา (EST/Local)</th>
+            <th>ประเทศ</th>
+            <th>เหตุการณ์ / ตัวเลขเศรษฐกิจ</th>
+            <th>ความสำคัญ</th>
+          </tr>
+        </thead>
+        <tbody id="calBody">
+          <tr>
+            <td colspan="4" style="text-align:center; color:var(--muted);">กำลังโหลดข้อมูลปฏิทินเศรษฐกิจจาก Finnhub...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>ราคาปิดล่าสุดและปฏิทินจาก Finnhub · อัตราแลกเปลี่ยนจาก frankfurter.app · คำนวณในเครื่องทั้งหมด</footer>
 </div>
 
 <script>
@@ -393,6 +424,36 @@ async function fetchPrice(ticker, apiKey){
   }catch(e){ return null; }
 }
 
+async function fetchEconomicCalendar(apiKey){
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const res = await fetch(`https://finnhub.io/api/v1/calendar/economic?from=${today}&to=${today}&token=${apiKey}`);
+    const j = await res.json();
+    const tbody = document.getElementById('calBody');
+    
+    if (j && j.economicCalendar && j.economicCalendar.length > 0) {
+      tbody.innerHTML = j.economicCalendar.slice(0, 10).map(item => {
+        const impClass = item.impact === 'High' ? 'badge-high' : 'badge-med';
+        return `
+          <tr>
+            <td>${item.time || 'All Day'}</td>
+            <td><strong>${item.country || 'US'}</strong></td>
+            <td>${item.event || '-'}</td>
+            <td><span class="badge-imp ${impClass}">${item.impact || 'Normal'}</span></td>
+          </tr>
+        `;
+      }).join('');
+    } else {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted);">ไม่มีรายการประกาศเศรษฐกิจสำคัญในวันนี้</td></tr>`;
+    }
+  } catch(e) {
+    document.getElementById('calBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--sell);">ไม่สามารถโหลดปฏิทินเศรษฐกิจได้</td></tr>`;
+  }
+}
+
+// โหลดปฏิทินเศรษฐกิจทันทีเมื่อเปิดหน้าเว็บ
+fetchEconomicCalendar(EMBEDDED_API_KEY);
+
 function pieChart(canvasId, labels, values){
   if (charts[canvasId]) charts[canvasId].destroy();
   const ctx = document.getElementById(canvasId);
@@ -515,7 +576,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   `).join('');
 
   document.getElementById('results').style.display = 'block';
-  statusLine.textContent = 'ดึงราคาออโต้และคำนวณเรียบร้อยแล้ว ✓';
+  statusLine.textContent = 'ดึงราคาและปฏิทินออโต้เรียบร้อยแล้ว ✓';
   btn.disabled = false;
 });
 </script>
