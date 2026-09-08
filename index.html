@@ -89,20 +89,37 @@
     border:1px solid var(--line);
     border-radius:10px;
     padding:12px;
-    display:grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap:8px 10px;
-    align-items:center;
   }
-  .holding-card .field-group{display:flex;flex-direction:column;}
-  .holding-card .field-group.full{grid-column: span 2;}
-  .holding-card label{font-size:11px;margin-bottom:2px;}
-  .holding-card input{padding:7px 8px;font-size:13px;}
-  .holding-card .lock-box{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);justify-content:center;}
+  .card-row {
+    display:flex;
+    gap:8px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .card-row:last-child {
+    margin-bottom:0;
+  }
+  .field-group{display:flex;flex-direction:column;flex:1;}
+  .field-group.cat-field{flex:1.4;}
+  .field-group.tk-field{flex:1;}
+  .field-group.small-field{flex:1;}
+
+  .holding-card label{font-size:11px;margin-bottom:3px;color:var(--muted);}
+  .holding-card input{padding:8px 8px;font-size:13px;}
+  
+  .card-actions {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:8px;
+    padding-top:8px;
+    border-top:1px solid var(--line);
+  }
+  .lock-box{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
   .del-btn{
     background:none;border:1px solid var(--line);color:var(--sell);
-    border-radius:6px;width:34px;height:34px;font-size:16px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;
+    border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;
+    display:flex;align-items:center;gap:4px;
   }
   .add-row{
     margin-top:12px;background:none;border:1px dashed var(--line);
@@ -285,31 +302,36 @@ function renderRows(){
     const card = document.createElement('div');
     card.className = 'holding-card';
     card.innerHTML = `
-      <div class="field-group">
-        <label>Category</label>
-        <input type="text" data-i="${i}" data-f="cat" value="${r.cat}">
+      <div class="card-row">
+        <div class="field-group cat-field">
+          <label>Category</label>
+          <input type="text" data-i="${i}" data-f="cat" value="${r.cat}">
+        </div>
+        <div class="field-group tk-field">
+          <label>Ticker</label>
+          <input type="text" data-i="${i}" data-f="tk" value="${r.tk}" style="text-transform:uppercase;">
+        </div>
       </div>
-      <div class="field-group">
-        <label>Ticker</label>
-        <input type="text" data-i="${i}" data-f="tk" value="${r.tk}" style="text-transform:uppercase;">
+      <div class="card-row">
+        <div class="field-group small-field">
+          <label>Price ($)</label>
+          <input type="number" step="0.01" data-i="${i}" data-f="price" value="${r.price}">
+        </div>
+        <div class="field-group small-field">
+          <label>Shares</label>
+          <input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}">
+        </div>
+        <div class="field-group small-field">
+          <label>Target %</label>
+          <input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}">
+        </div>
       </div>
-      <button class="del-btn" data-i="${i}" type="button" title="ลบ">✕</button>
-
-      <div class="field-group">
-        <label>Price ($)</label>
-        <input type="number" step="0.01" data-i="${i}" data-f="price" value="${r.price}">
-      </div>
-      <div class="field-group">
-        <label>Shares</label>
-        <input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}">
-      </div>
-      <div class="field-group">
-        <label>Target %</label>
-        <input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}">
-      </div>
-      <div class="lock-box">
-        <input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--gold);">
-        <span>ล็อก</span>
+      <div class="card-actions">
+        <div class="lock-box">
+          <input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--gold);">
+          <span>ล็อกสัดส่วน</span>
+        </div>
+        <button class="del-btn" data-i="${i}" type="button">ลบรายการ ✕</button>
       </div>
     `;
     body.appendChild(card);
