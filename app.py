@@ -161,14 +161,17 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
     with st.spinner("กำลังดึงราคาล่าสุดจาก Yahoo Finance..."):
         edited_df["Ticker"] = edited_df["Ticker"].str.strip().str.upper()
         tickers = edited_df["Ticker"].unique().tolist()
+        tickers_to_fetch = tickers + ["THB=X"]
 
         try:
-            price_data = yf.download(tickers, period="1d")["Close"]
+            price_data = yf.download(tickers_to_fetch, period="1d")["Close"]
             if isinstance(price_data, pd.DataFrame):
                 prices = price_data.iloc[-1].to_dict()
             else:
-                prices = {tickers[0]: price_data.iloc[-1]}
+                prices = {tickers_to_fetch[0]: price_data.iloc[-1]}
+            usd_thb = float(prices.get("THB=X", 34.5))
         except Exception as e:
+            usd_thb = 34.5
             st.error(
                 f"เกิดข้อผิดพลาดในการดึงราคา โปรดเช็คชื่อ Ticker อีกครั้ง: {e}"
             )
@@ -251,12 +254,29 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
         df_res = pd.DataFrame(results)
 
         st.divider()
-        # วางโค้ดการ์ดสรุปตรงนี้ครับ (ให้ย่อหน้าตรงกับ st.divider)
+        total_val_thb = total_val * usd_thb
+        cash_thb = cash_input * usd_thb
+
+        st.divider()
         m1, m2, m3 = st.columns(3)
-        m1.metric("💰 มูลค่าพอร์ตรวม", f"${total_val:,.2f}")
-        m2.metric("💵 เงินสดในพอร์ต", f"${cash_input:,.2f}")
-        m3.metric("📦 รายการสินทรัพย์", f"{len(df_res)} ตัว")
-       
+        
+        m1.metric(
+            "💰 มูลค่าพอร์ตรวม", 
+            f"${total_val:,.2f}", 
+            f"≈ ฿{total_val_thb:,.0f} THB"
+        )
+        
+        m2.metric(
+            "💵 เงินสดในพอร์ต", 
+            f"${cash_input:,.2f}", 
+            f"≈ ฿{cash_thb:,.0f} THB"
+        )
+        
+        m3.metric(
+            "💱 อัตราแลกเปลี่ยน", 
+            f"฿{usd_thb:.2f} / $", 
+            f"สินทรัพย์ {len(df_res)} ตัว"
+        )
         # 📊 ส่วนแสดงผลชาร์ท (Charts)
         st.subheader("📊 เปรียบเทียบสัดส่วนพอร์ต (Current vs Target)")
 
