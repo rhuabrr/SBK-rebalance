@@ -77,27 +77,47 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
         tickers = edited_df["Ticker"].unique().tolist()
         tickers_to_fetch = tickers + ["THB=X"]
 
-        try:
-            # ดึงข้อมูลและดึงเฉพาะคอลัมน์ Close ป้องกันปัญหา MultiIndex ผิดเพี้ยน
-            raw_data = yf.download(tickers_to_fetch, period="1d")
-            if isinstance(raw_data.columns, pd.MultiIndex):
-                price_data = raw_data["Close"]
-            else:
-                price_data = raw_data
+        prices = {}
+        usd_thb = 34.5  # ค่าสำรองเริ่มต้น
 
-            prices = {}
+        try:
+            # ดึงข้อมูลแบบแยกทีละตัวหรือก้อนเดียวโดยดักจับพาร์สข้อมูลให้ปลอดภัย
+            raw_data = yf.download(tickers_to_fetch, period="1d", progress=False)
+            
+            # จัดการโครงสร้างข้อมูล Close
+            if "Close" in raw_data:
+                close_df = raw_data["Close"]
+            else:
+                close_df = raw_data
+
+            # วนลูปดึงราคาแต่ละตัวอย่างปลอดภัย
             for t in tickers_to_fetch:
-                if t in price_data.columns:
-                    val = price_data[t].iloc[-1]
+                try:
+                    if isinstance(close_df, pd.DataFrame) and t in close_df.columns:
+                        val = close_df[t].iloc[-1]
+                    elif isinstance(close_df, pd.Series):
+                        val = close_df.iloc[-1]
+                    else:
+                        val = 0.0
+                    
                     prices[t] = float(val) if pd.notna(val) else 0.0
-                else:
+                except:
                     prices[t] = 0.0
 
-            raw_rate = prices.get("THB=X", 34.5)
-            usd_thb = float(raw_rate) if (pd.notna(raw_rate) and raw_rate > 0) else 34.5
+            # ดึงเรเงินบาท
+            if "THB=X" in prices and prices["THB=X"] > 0:
+                usd_thb = prices["THB=X"]
+            else:
+                # ลองดึงแยกเดี่ยวๆ เผื่อกรณีตัวรวมมีปัญหา
+                single_thb = yf.download("THB=X", period="1d", progress=False)
+                if "Close" in single_thb:
+                    val_thb = single_thb["Close"].iloc[-1]
+                else:
+                    val_thb = single_thb.iloc[-1]
+                usd_thb = float(val_thb) if pd.notna(val_thb) and val_thb > 0 else 34.5
+
         except Exception as e:
-            usd_thb = 34.5
-            st.error(f"เกิดข้อผิดพลาดในการดึงราคา โปรดเช็คชื่อ Ticker อีกครั้ง: {e}")
+            st.error(f"เกิดข้อผิดพลาดในการดึงข้อมูล: {e}")
             st.stop()
 
         total_val = cash_input
