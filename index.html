@@ -82,40 +82,32 @@
   details summary::before{content:"⚙ ";}
   details[open] summary{margin-bottom:12px;}
 
-  /* Table */
-  .tbl-scroll{overflow-x:auto;margin-top:4px;}
-  table{width:100%;border-collapse:collapse;min-width:640px;}
-  th{
-    text-align:left;
-    font-size:11.5px;
-    text-transform:none;
-    color:var(--muted);
-    font-weight:500;
-    padding:6px 8px;
-    border-bottom:1px solid var(--line);
-    white-space:nowrap;
+  /* Portfolio Input Cards for Mobile */
+  .holding-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+  .holding-card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap:8px 10px;
+    align-items:center;
   }
-  td{
-    padding:5px 8px;
-    border-bottom:1px solid var(--line);
-    vertical-align:middle;
-  }
-  td input[type=text], td input[type=number]{
-    padding:6px 8px;
-    font-size:13px;
-    min-width:60px;
-  }
-  td.cat input{min-width:90px;}
-  td.tk input{min-width:64px;text-transform:uppercase;}
-  input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold);}
+  .holding-card .field-group{display:flex;flex-direction:column;}
+  .holding-card .field-group.full{grid-column: span 2;}
+  .holding-card label{font-size:11px;margin-bottom:2px;}
+  .holding-card input{padding:7px 8px;font-size:13px;}
+  .holding-card .lock-box{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);justify-content:center;}
   .del-btn{
     background:none;border:1px solid var(--line);color:var(--sell);
-    border-radius:6px;width:28px;height:28px;font-size:14px;cursor:pointer;
+    border-radius:6px;width:34px;height:34px;font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
   }
   .add-row{
-    margin-top:10px;background:none;border:1px dashed var(--line);
-    color:var(--gold);border-radius:8px;padding:8px 14px;font-size:13px;
-    cursor:pointer;width:100%;
+    margin-top:12px;background:none;border:1px dashed var(--line);
+    color:var(--gold);border-radius:8px;padding:10px 14px;font-size:14px;
+    cursor:pointer;width:100%;font-weight:500;
   }
 
   /* Buttons */
@@ -161,10 +153,21 @@
   .chart-card h3{font-size:13px;font-weight:500;color:var(--muted);margin:0 0 8px;text-align:center;}
   .chart-card canvas{max-height:230px;}
 
-  /* Results table */
-  .res-tbl{margin-top:14px;}
-  .res-tbl table{min-width:720px;}
-  .action{font-family:'JetBrains Mono',monospace;font-weight:600;padding:3px 8px;border-radius:6px;font-size:12.5px;display:inline-block;}
+  /* Results Mobile Card Layout */
+  .res-cards{display:flex;flex-direction:column;gap:12px;margin-top:14px;}
+  .res-card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:14px;
+  }
+  .res-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid var(--line);padding-bottom:8px;}
+  .res-title{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:16px;color:var(--gold);}
+  .res-cat{font-size:11.5px;background:var(--line);padding:2px 8px;border-radius:4px;color:var(--muted);}
+  .res-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 12px;font-size:13px;}
+  .res-item label{font-size:11px;color:var(--muted);margin-bottom:2px;}
+  .res-item val{font-family:'JetBrains Mono',monospace;display:block;}
+  .action{font-family:'JetBrains Mono',monospace;font-weight:600;padding:4px 10px;border-radius:6px;font-size:13px;display:inline-block;}
   .action.buy{background:var(--buy-bg);color:var(--buy);}
   .action.sell{background:var(--sell-bg);color:var(--sell);}
   .action.hold{color:var(--muted);}
@@ -196,8 +199,8 @@
         <input type="password" id="apiKey" placeholder="วางคีย์ฟรีจาก finnhub.io ที่นี่">
       </div>
       <p class="hint">
-        ถ้าไม่ใส่คีย์ ก็ยังใช้แอปได้ปกติ — แค่กรอกราคาเองในคอลัมน์ "Price" ของตาราง<br>
-        ขอคีย์ฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> (สมัครฟรี ใช้เวลา ~1 นาที) แล้ววางไว้ที่นี่เพื่อให้ปุ่มด้านล่างดึงราคาล่าสุดให้อัตโนมัติ<br>
+        ถ้าไม่ใส่คีย์ ก็ยังใช้แอปได้ปกติ — แค่กรอกราคาเองในช่อง Price ของแต่ละรายการ<br>
+        ขอคีย์ฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> (สมัครฟรี ใช้เวลา ~1 นาที)<br>
         อัตราแลกเปลี่ยน USD→THB ดึงจาก frankfurter.app ให้อัตโนมัติ ไม่ต้องใช้คีย์
       </p>
     </details>
@@ -205,17 +208,7 @@
 
   <div class="panel">
     <h2>Portfolio</h2>
-    <div class="tbl-scroll">
-      <table id="holdingsTable">
-        <thead>
-          <tr>
-            <th>Category</th><th>Ticker</th><th>Price ($)</th><th>Shares</th>
-            <th>Target %</th><th>🔒</th><th></th>
-          </tr>
-        </thead>
-        <tbody id="holdingsBody"></tbody>
-      </table>
-    </div>
+    <div class="holding-list" id="holdingsBody"></div>
     <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
   </div>
 
@@ -255,19 +248,9 @@
       <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Ticker)</h3><canvas id="chartTkTgt"></canvas></div>
     </div>
 
-    <div class="panel res-tbl">
+    <div class="panel">
       <h2>📋 แผนการ Rebalance รายหุ้น</h2>
-      <div class="tbl-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Category</th><th>Ticker</th><th>Price</th><th>Shares</th>
-              <th>Current $</th><th>Current %</th><th>Target %</th><th>Action</th><th>Est. Amount</th>
-            </tr>
-          </thead>
-          <tbody id="resBody"></tbody>
-        </table>
-      </div>
+      <div class="res-cards" id="resBody"></div>
     </div>
   </div>
 
@@ -299,17 +282,37 @@ const statusLine = document.getElementById('statusLine');
 function renderRows(){
   body.innerHTML = '';
   rows.forEach((r, i) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="cat"><input type="text" data-i="${i}" data-f="cat" value="${r.cat}"></td>
-      <td class="tk"><input type="text" data-i="${i}" data-f="tk" value="${r.tk}"></td>
-      <td><input type="number" step="0.01" data-i="${i}" data-f="price" value="${r.price}"></td>
-      <td><input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}"></td>
-      <td><input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}"></td>
-      <td style="text-align:center;"><input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''}></td>
-      <td><button class="del-btn" data-i="${i}" type="button">✕</button></td>
+    const card = document.createElement('div');
+    card.className = 'holding-card';
+    card.innerHTML = `
+      <div class="field-group">
+        <label>Category</label>
+        <input type="text" data-i="${i}" data-f="cat" value="${r.cat}">
+      </div>
+      <div class="field-group">
+        <label>Ticker</label>
+        <input type="text" data-i="${i}" data-f="tk" value="${r.tk}" style="text-transform:uppercase;">
+      </div>
+      <button class="del-btn" data-i="${i}" type="button" title="ลบ">✕</button>
+
+      <div class="field-group">
+        <label>Price ($)</label>
+        <input type="number" step="0.01" data-i="${i}" data-f="price" value="${r.price}">
+      </div>
+      <div class="field-group">
+        <label>Shares</label>
+        <input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}">
+      </div>
+      <div class="field-group">
+        <label>Target %</label>
+        <input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}">
+      </div>
+      <div class="lock-box">
+        <input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--gold);">
+        <span>ล็อก</span>
+      </div>
     `;
-    body.appendChild(tr);
+    body.appendChild(card);
   });
 
   body.querySelectorAll('input').forEach(inp => {
@@ -455,20 +458,28 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   pieChart('chartTkCurr', tkCurr.map(r=>r.tk), tkCurr.map(r=>r.currPct));
   pieChart('chartTkTgt', tkTgt.map(r=>r.tk), tkTgt.map(r=>r.tgt));
 
-  // Results table
+  // Results Cards Layout
   const resBody = document.getElementById('resBody');
   resBody.innerHTML = results.map(r => `
-    <tr>
-      <td>${r.cat}</td>
-      <td>${r.tk}</td>
-      <td class="num">$${r.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="num">${r.shares}</td>
-      <td class="num">$${r.currVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-      <td class="num">${r.currPct.toFixed(1)}%</td>
-      <td class="num">${r.tgt.toFixed(1)}%</td>
-      <td><span class="action ${r.actionClass}">${r.action}</span></td>
-      <td class="num">$${r.diffAmount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
-    </tr>
+    <div class="res-card">
+      <div class="res-header">
+        <span class="res-title">${r.tk}</span>
+        <span class="res-cat">${r.cat}</span>
+      </div>
+      <div class="res-grid">
+        <div class="res-item"><label>Price</label><span class="num">$${r.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="res-item"><label>Shares</label><span class="num">${r.shares}</span></div>
+        <div class="res-item"><label>Current Value</label><span class="num">$${r.currVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
+        <div class="res-item"><label>Current / Target %</label><span class="num">${r.currPct.toFixed(1)}% / ${r.tgt.toFixed(1)}%</span></div>
+        <div class="res-item" style="grid-column:span 2; margin-top:4px;">
+          <label>Action & Est. Amount</label>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
+            <span class="action ${r.actionClass}">${r.action}</span>
+            <span class="num" style="font-weight:600;">$${r.diffAmount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span>
+          </div>
+        </div>
+      </div>
+    </div>
   `).join('');
 
   document.getElementById('results').style.display = 'block';
@@ -476,7 +487,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   btn.disabled = false;
 });
 </script>
-  <script>
+<script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./pwabuilder-sw.js')
