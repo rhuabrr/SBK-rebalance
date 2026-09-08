@@ -63,7 +63,7 @@
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
   .field{flex:1;min-width:140px;}
   label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
-  input[type=text], input[type=number], input[type=password], select{
+  input[type=text], input[type=number], input[type=password]{
     width:100%;
     background:var(--panel-2);
     border:1px solid var(--line);
@@ -73,7 +73,7 @@
     font-family:'JetBrains Mono',monospace;
     font-size:14px;
   }
-  input:focus, select:focus{outline:2px solid var(--gold-dim);outline-offset:1px;}
+  input:focus{outline:2px solid var(--gold-dim);outline-offset:1px;}
   .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
   .hint a{color:var(--gold);}
 
@@ -89,37 +89,20 @@
     border:1px solid var(--line);
     border-radius:10px;
     padding:12px;
-  }
-  .card-row {
-    display:flex;
-    gap:8px;
+    display:grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap:8px 10px;
     align-items:center;
-    margin-bottom:8px;
   }
-  .card-row:last-child {
-    margin-bottom:0;
-  }
-  .field-group{display:flex;flex-direction:column;flex:1;}
-  .field-group.cat-field{flex:1.4;}
-  .field-group.tk-field{flex:1;}
-  .field-group.small-field{flex:1;}
-
-  .holding-card label{font-size:11px;margin-bottom:3px;color:var(--muted);}
-  .holding-card input, .holding-card select{padding:8px 8px;font-size:13px;}
-  
-  .card-actions {
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-top:8px;
-    padding-top:8px;
-    border-top:1px solid var(--line);
-  }
-  .lock-box{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+  .holding-card .field-group{display:flex;flex-direction:column;}
+  .holding-card .field-group.full{grid-column: span 2;}
+  .holding-card label{font-size:11px;margin-bottom:2px;}
+  .holding-card input{padding:7px 8px;font-size:13px;}
+  .holding-card .lock-box{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);justify-content:center;}
   .del-btn{
     background:none;border:1px solid var(--line);color:var(--sell);
-    border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;
-    display:flex;align-items:center;gap:4px;
+    border-radius:6px;width:34px;height:34px;font-size:16px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
   }
   .add-row{
     margin-top:12px;background:none;border:1px dashed var(--line);
@@ -285,15 +268,10 @@ const DEFAULT_DATA = [
   {cat:"ROYALTY",  tk:"WPM",  price:0, shares:0,   tgt:7.0,  lock:false},
   {cat:"ROYALTY",  tk:"RGLD", price:0, shares:0,   tgt:5.0,  lock:false},
   {cat:"CRYPTO",   tk:"COIN", price:0, shares:35,  tgt:10.0, lock:true},
-  {cat:"US STOCK", tk:"MSFT", price:0, shares:0,   tgt:0.0,  lock:false},
-  {cat:"US STOCK", tk:"UNH",  price:0, shares:0,   tgt:0.0,  lock:false},
-  {cat:"BOND",     tk:"TLT",  price:0, shares:0,   tgt:0.0,  lock:false},
   {cat:"OTHERS",   tk:"BKR",  price:0, shares:15,  tgt:0.0,  lock:false},
   {cat:"OTHERS",   tk:"SQM",  price:0, shares:12,  tgt:0.0,  lock:false},
   {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false},
 ];
-
-const PRESET_CATS = ["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "US STOCK", "BOND", "OTHERS"];
 
 let rows = JSON.parse(JSON.stringify(DEFAULT_DATA));
 let charts = {};
@@ -304,82 +282,48 @@ const statusLine = document.getElementById('statusLine');
 function renderRows(){
   body.innerHTML = '';
   rows.forEach((r, i) => {
-    // ถ้า Category ปัจจุบันไม่อยู่ใน Preset ให้ถือว่าผู้ใช้พิมพ์เอง
-    const isCustom = !PRESET_CATS.includes(r.cat) && r.cat !== '';
-
     const card = document.createElement('div');
     card.className = 'holding-card';
     card.innerHTML = `
-      <div class="card-row">
-        <div class="field-group cat-field">
-          <label>Category</label>
-          <div style="display:flex; gap:4px;">
-            <select data-i="${i}" data-f="cat-select" style="flex:1;">
-              ${PRESET_CATS.map(c => `<option value="${c}" ${r.cat === c ? 'selected' : ''}>${c}</option>`).join('')}
-              <option value="CUSTOM" ${isCustom ? 'selected' : ''}>+ พิมพ์เพิ่มเอง...</option>
-            </select>
-          </div>
-          <input type="text" data-i="${i}" data-f="cat" value="${r.cat}" placeholder="พิมพ์ชื่อกลุ่ม..." style="margin-top:4px; ${isCustom || !PRESET_CATS.includes(r.cat) ? '' : 'display:none;'}">
-        </div>
-        <div class="field-group tk-field">
-          <label>Ticker</label>
-          <input type="text" data-i="${i}" data-f="tk" value="${r.tk}" style="text-transform:uppercase;">
-        </div>
+      <div class="field-group">
+        <label>Category</label>
+        <input type="text" data-i="${i}" data-f="cat" value="${r.cat}">
       </div>
-      <div class="card-row">
-        <div class="field-group small-field">
-          <label>Price ($)</label>
-          <input type="number" step="0.01" data-i="${i}" data-f="price" value="${r.price}">
-        </div>
-        <div class="field-group small-field">
-          <label>Shares</label>
-          <input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}">
-        </div>
-        <div class="field-group small-field">
-          <label>Target %</label>
-          <input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}">
-        </div>
+      <div class="field-group">
+        <label>Ticker</label>
+        <input type="text" data-i="${i}" data-f="tk" value="${r.tk}" style="text-transform:uppercase;">
       </div>
-      <div class="card-actions">
-        <div class="lock-box">
-          <input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--gold);">
-          <span>ล็อกสัดส่วน</span>
-        </div>
-        <button class="del-btn" data-i="${i}" type="button">ลบรายการ ✕</button>
+      <button class="del-btn" data-i="${i}" type="button" title="ลบ">✕</button>
+
+      <div class="field-group">
+        <label>Price ($)</label>
+        <input type="number" step="0.01" data-i="${i}" data-f="price" value="${r.price}">
+      </div>
+      <div class="field-group">
+        <label>Shares</label>
+        <input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}">
+      </div>
+      <div class="field-group">
+        <label>Target %</label>
+        <input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}">
+      </div>
+      <div class="lock-box">
+        <input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--gold);">
+        <span>ล็อก</span>
       </div>
     `;
     body.appendChild(card);
-  });
-
-  // Event Listeners สำหรับ Dropdown และ Text Input
-  body.querySelectorAll('select[data-f="cat-select"]').forEach(sel => {
-    sel.addEventListener('change', e => {
-      const i = +e.target.dataset.i;
-      const val = e.target.value;
-      const customInput = body.querySelector(`input[data-i="${i}"][data-f="cat"]`);
-      if (val === 'CUSTOM'){
-        customInput.style.display = 'block';
-        customInput.focus();
-        rows[i].cat = customInput.value;
-      } else {
-        customInput.style.display = 'none';
-        rows[i].cat = val;
-      }
-    });
   });
 
   body.querySelectorAll('input').forEach(inp => {
     inp.addEventListener('change', e => {
       const i = +e.target.dataset.i, f = e.target.dataset.f;
       if (f === 'lock') rows[i][f] = e.target.checked;
-      else if (f === 'cat') rows[i][f] = e.target.value.trim();
-      else if (f === 'tk') {
-        rows[i][f] = e.target.value.trim().toUpperCase();
-      }
+      else if (f === 'cat' || f === 'tk') rows[i][f] = e.target.value.trim();
       else rows[i][f] = parseFloat(e.target.value) || 0;
+      if (f === 'tk') rows[i].tk = rows[i].tk.toUpperCase();
     });
   });
-
   body.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       rows.splice(+e.target.dataset.i, 1);
@@ -389,7 +333,7 @@ function renderRows(){
 }
 
 document.getElementById('addRowBtn').addEventListener('click', () => {
-  rows.push({cat:"US STOCK", tk:"", price:0, shares:0, tgt:0, lock:false});
+  rows.push({cat:"", tk:"", price:0, shares:0, tgt:0, lock:false});
   renderRows();
 });
 
