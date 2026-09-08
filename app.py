@@ -290,6 +290,7 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                     names="Category",
                     title="สัดส่วนปัจจุบัน (Current Category %)",
                     hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Pastel
                 )
                 fig_cat_curr.update_traces(
                     hovertemplate="<b>%{label}</b><br>สัดส่วนปัจจุบัน: %{value:.2f}%<extra></extra>"
@@ -303,6 +304,7 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                     names="Category",
                     title="สัดส่วนเป้าหมาย (Target Category %)",
                     hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Pastel
                 )
                 fig_cat_tgt.update_traces(
                     hovertemplate="<b>%{label}</b><br>สัดส่วนเป้าหมาย: %{value:.2f}%<extra></extra>"
@@ -318,6 +320,7 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                     names="Ticker",
                     title="สัดส่วนหุ้นปัจจุบัน (Current Tickers %)",
                     hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Pastel
                 )
                 fig_tk_curr.update_traces(
                     hovertemplate="<b>%{label}</b><br>สัดส่วนปัจจุบัน: %{value:.2f}%<extra></extra>"
@@ -331,6 +334,7 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                     names="Ticker",
                     title="สัดส่วนหุ้นเป้าหมาย (Target Tickers %)",
                     hole=0.4,
+                    color_discrete_sequence=px.colors.qualitative.Pastel
                 )
                 fig_tk_tgt.update_traces(
                     hovertemplate="<b>%{label}</b><br>สัดส่วนเป้าหมาย: %{value:.2f}%<extra></extra>"
