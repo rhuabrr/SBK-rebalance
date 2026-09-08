@@ -166,10 +166,12 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
         try:
             price_data = yf.download(tickers_to_fetch, period="1d")["Close"]
             if isinstance(price_data, pd.DataFrame):
-                prices = price_data.iloc[-1].to_dict()
+                prices = price_data.iloc[-1].fillna(0.0).to_dict()
             else:
-                prices = {tickers_to_fetch[0]: price_data.iloc[-1]}
-            usd_thb = float(prices.get("THB=X", 34.5))
+                val = price_data.iloc[-1]
+                prices = {tickers_to_fetch[0]: float(val) if pd.notna(val) else 0.0}
+            raw_rate = prices.get("THB=X", 34.5)
+            usd_thb = float(raw_rate) if (pd.notna(raw_rate) and raw_rate > 0) else 34.5
         except Exception as e:
             usd_thb = 34.5
             st.error(
