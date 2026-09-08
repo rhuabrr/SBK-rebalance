@@ -135,7 +135,7 @@ default_data = [
 st.sidebar.header("⚙️ ตั้งค่าเงินสด")
 cash_input = st.sidebar.number_input("เงินสดคงเหลือ ($)", value=0.0, step=100.0)
 
-st.subheader("📌 แก้ไขหมวดหมู่ / Ticker / หุ้น / Target % (กด + เพิ่มบรรทัดได้)")
+st.subheader("📌 Portfolio ")
 df_input = pd.DataFrame(default_data)
 
 edited_df = st.data_editor(
