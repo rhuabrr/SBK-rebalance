@@ -116,6 +116,7 @@ edited_df = st.data_editor(
             "หมวดหมู่ (Category)",
             options=["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "INDEX ETF", "US STOCK", "BOND", "OTHERS"], # เพิ่มตรงนี้
             required=True
+        ),
         "Ticker": st.column_config.TextColumn(
             "ชื่อหุ้น (Ticker)", required=True
         ),
