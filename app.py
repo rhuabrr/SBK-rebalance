@@ -341,11 +341,17 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
                 )
                 st.plotly_chart(fig_tk_tgt, use_container_width=True)
 
-        # 📋 แสดงตารางผลลัพธ์
+        # 1. ฟังก์ชันช่วยใส่สี
+        def highlight_action(val):
+            if 'BUY' in str(val):
+                return 'background-color: #0d3b24; color: #34d399; font-weight: bold;'
+            elif 'SELL' in str(val):
+                return 'background-color: #4c1d1d; color: #f87171; font-weight: bold;'
+            return ''
+        
+        # 2. แสดงตารางผลลัพธ์พร้อมไฮไลต์สี
         st.subheader("📋 แผนการ Rebalance รายหุ้น")
         st.dataframe(
-            df_res.drop(
-                columns=["Current_Pct_Num", "Target_Pct_Num"]
-            ),  # ซ่อนคอลัมน์ตัวเลขที่ใช้ทำชาร์ท
-            use_container_width=True,
+            df_res.drop(columns=["Current_Pct_Num", "Target_Pct_Num"]).style.map(highlight_action, subset=['Action']),
+            use_container_width=True
         )
