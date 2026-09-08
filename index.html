@@ -63,7 +63,7 @@
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
   .field{flex:1;min-width:140px;}
   label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
-  input[type=text], input[type=number], input[type=password], select{
+  input[type=text], input[type=number], select{
     width:100%;
     background:var(--panel-2);
     border:1px solid var(--line);
@@ -74,13 +74,6 @@
     font-size:14px;
   }
   input:focus, select:focus{outline:2px solid var(--gold-dim);outline-offset:1px;}
-  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
-  .hint a{color:var(--gold);}
-
-  details summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;}
-  details summary::-webkit-details-marker{display:none;}
-  details summary::before{content:"⚙ ";}
-  details[open] summary{margin-bottom:12px;}
 
   /* Portfolio Input Cards for Mobile */
   .holding-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
@@ -198,29 +191,17 @@
   <header>
     <p class="eyebrow">PRIVATE LEDGER</p>
     <h1>Portfolio Rebalance</h1>
-    <p class="sub">คำนวณแผนซื้อ/ขายเพื่อปรับพอร์ตให้ตรงเป้าหมาย — ทำงานในเครื่อง ไม่ต้องมี server</p>
+    <p class="sub">คำนวณแผนซื้อ/ขายเพื่อปรับพอร์ตให้ตรงเป้าหมาย — ดึงราคาออโต้และคำนวณในเครื่อง</p>
   </header>
 
   <div class="panel">
-    <h2>เงินสด &amp; แหล่งราคา</h2>
+    <h2>เงินสดคงเหลือ</h2>
     <div class="row">
       <div class="field">
-        <label>เงินสดคงเหลือ ($)</label>
+        <label>เงินสด ($)</label>
         <input type="number" id="cashInput" value="0" step="100">
       </div>
     </div>
-    <details style="margin-top:14px;">
-      <summary>ตั้งค่าการดึงราคาอัตโนมัติ (ไม่บังคับ)</summary>
-      <div class="field">
-        <label>Finnhub API Key</label>
-        <input type="password" id="apiKey" placeholder="วางคีย์ฟรีจาก finnhub.io ที่นี่">
-      </div>
-      <p class="hint">
-        ถ้าไม่ใส่คีย์ ก็ยังใช้แอปได้ปกติ — แค่กรอกราคาเองในช่อง Price ของแต่ละรายการ<br>
-        ขอคีย์ฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> (สมัครฟรี ใช้เวลา ~1 นาที)<br>
-        อัตราแลกเปลี่ยน USD→THB ดึงจาก frankfurter.app ให้อัตโนมัติ ไม่ต้องใช้คีย์
-      </p>
-    </details>
   </div>
 
   <div class="panel">
@@ -229,7 +210,7 @@
     <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
   </div>
 
-  <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคา & คำนวณ Rebalance</button>
+  <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคาออโต้ & คำนวณ Rebalance</button>
   <p class="status-line" id="statusLine"></p>
 
   <div id="results" style="display:none;">
@@ -275,6 +256,8 @@
 </div>
 
 <script>
+const EMBEDDED_API_KEY = "dafsnk1r01quvmmhdhvgdafsnk1r01quvmmhdi00";
+
 const DEFAULT_DATA = [
   {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false},
   {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false},
@@ -304,7 +287,6 @@ const statusLine = document.getElementById('statusLine');
 function renderRows(){
   body.innerHTML = '';
   rows.forEach((r, i) => {
-    // ถ้า Category ปัจจุบันไม่อยู่ใน Preset ให้ถือว่าผู้ใช้พิมพ์เอง
     const isCustom = !PRESET_CATS.includes(r.cat) && r.cat !== '';
 
     const card = document.createElement('div');
@@ -351,7 +333,6 @@ function renderRows(){
     body.appendChild(card);
   });
 
-  // Event Listeners สำหรับ Dropdown และ Text Input
   body.querySelectorAll('select[data-f="cat-select"]').forEach(sel => {
     sel.addEventListener('change', e => {
       const i = +e.target.dataset.i;
@@ -442,24 +423,19 @@ document.getElementById('tabTk').addEventListener('click', () => {
 document.getElementById('calcBtn').addEventListener('click', async () => {
   const btn = document.getElementById('calcBtn');
   btn.disabled = true;
-  const apiKey = document.getElementById('apiKey').value.trim();
   const cashInput = parseFloat(document.getElementById('cashInput').value) || 0;
 
   statusLine.textContent = 'กำลังดึงอัตราแลกเปลี่ยน...';
   const usdThb = await fetchRate();
 
-  if (apiKey){
-    for (let i = 0; i < rows.length; i++){
-      if (!rows[i].tk) continue;
-      statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
-      const p = await fetchPrice(rows[i].tk, apiKey);
-      if (p !== null) rows[i].price = p;
-      await new Promise(r => setTimeout(r, 120));
-    }
-    renderRows();
-  } else {
-    statusLine.textContent = 'ไม่มี API key — ใช้ราคาที่กรอกไว้ในตาราง';
+  for (let i = 0; i < rows.length; i++){
+    if (!rows[i].tk) continue;
+    statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
+    const p = await fetchPrice(rows[i].tk, EMBEDDED_API_KEY);
+    if (p !== null) rows[i].price = p;
+    await new Promise(r => setTimeout(r, 120));
   }
+  renderRows();
 
   let totalVal = cashInput;
   const items = rows.filter(r => r.tk).map(r => {
@@ -539,7 +515,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   `).join('');
 
   document.getElementById('results').style.display = 'block';
-  statusLine.textContent = apiKey ? 'อัปเดตราคาล่าสุดแล้ว ✓' : 'คำนวณจากราคาที่กรอกเองแล้ว ✓';
+  statusLine.textContent = 'ดึงราคาออโต้และคำนวณเรียบร้อยแล้ว ✓';
   btn.disabled = false;
 });
 </script>
