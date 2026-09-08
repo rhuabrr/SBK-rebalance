@@ -6,6 +6,36 @@ import yfinance as yf
 st.set_page_config(
     page_title="Portfolio Rebalance", layout="wide", page_icon="📈"
 )
+# แต่งสไตล์ CSS ให้เหมือนแอปมือถือ
+st.markdown("""
+    <style>
+    /* ปรับพื้นหลังและการ์ดให้มีความเป็นพรีเมียม Dark Mode */
+    .stApp {
+        background-color: #0E1117;
+    }
+    
+    /* ปรับแต่งปุ่มกดหลักให้เด่นและขอบมนสวยงาม */
+    div.stButton > button:first-child {
+        background-color: #00D26A;
+        color: #0E1117;
+        font-weight: bold;
+        border-radius: 12px;
+        height: 50px;
+        font-size: 18px;
+        border: none;
+        box-shadow: 0px 4px 10px rgba(0, 210, 106, 0.3);
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #00FF80;
+        color: #0E1117;
+    }
+
+    /* ซ่อนแถบ Header / Footer รกๆ ของ Streamlit */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+""", unsafe_allow_html=True)
 
 st.title("🤖 แอป Rebalance พอร์ตส่วนตัว (พร้อมชาร์ทวิเคราะห์)")
 
