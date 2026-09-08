@@ -4,8 +4,20 @@
   "display": "standalone",
   "name": "SBK Portfolio",
   "orientation": "any",
-  "scope": "/",
+  "scope": "/SBK-rebalance/",
   "short_name": "SBK",
-  "start_url": "/",
-  "theme_color": "#ffffff"
+  "start_url": "/SBK-rebalance/",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/SBK-rebalance/android/launchericong-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/SBK-rebalance/android/launchericong-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
