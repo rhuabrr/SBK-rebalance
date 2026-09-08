@@ -78,47 +78,23 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
         tickers_to_fetch = tickers + ["THB=X"]
 
         prices = {}
-        usd_thb = 34.5  # ค่าสำรองเริ่มต้น
-
-        try:
-            # ดึงข้อมูลแบบแยกทีละตัวหรือก้อนเดียวโดยดักจับพาร์สข้อมูลให้ปลอดภัย
-            raw_data = yf.download(tickers_to_fetch, period="1d", progress=False)
-            
-            # จัดการโครงสร้างข้อมูล Close
-            if "Close" in raw_data:
-                close_df = raw_data["Close"]
-            else:
-                close_df = raw_data
-
-            # วนลูปดึงราคาแต่ละตัวอย่างปลอดภัย
-            for t in tickers_to_fetch:
-                try:
-                    if isinstance(close_df, pd.DataFrame) and t in close_df.columns:
-                        val = close_df[t].iloc[-1]
-                    elif isinstance(close_df, pd.Series):
-                        val = close_df.iloc[-1]
-                    else:
-                        val = 0.0
-                    
+        
+        # วนดึงทีละตัว ป้องกันปัญหา DataFrame ตีกัน
+        for t in tickers_to_fetch:
+            try:
+                ticker_obj = yf.Ticker(t)
+                hist = ticker_obj.history(period="1d")
+                if not hist.empty and "Close" in hist.columns:
+                    val = hist["Close"].iloc[-1]
                     prices[t] = float(val) if pd.notna(val) else 0.0
-                except:
-                    prices[t] = 0.0
-
-            # ดึงเรเงินบาท
-            if "THB=X" in prices and prices["THB=X"] > 0:
-                usd_thb = prices["THB=X"]
-            else:
-                # ลองดึงแยกเดี่ยวๆ เผื่อกรณีตัวรวมมีปัญหา
-                single_thb = yf.download("THB=X", period="1d", progress=False)
-                if "Close" in single_thb:
-                    val_thb = single_thb["Close"].iloc[-1]
                 else:
-                    val_thb = single_thb.iloc[-1]
-                usd_thb = float(val_thb) if pd.notna(val_thb) and val_thb > 0 else 34.5
+                    prices[t] = 0.0
+            except Exception:
+                prices[t] = 0.0
 
-        except Exception as e:
-            st.error(f"เกิดข้อผิดพลาดในการดึงข้อมูล: {e}")
-            st.stop()
+        # ดึงเรทเงินบาท
+        raw_rate = prices.get("THB=X", 34.5)
+        usd_thb = float(raw_rate) if (pd.notna(raw_rate) and raw_rate > 0) else 34.5
 
         total_val = cash_input
         temp_data = []
