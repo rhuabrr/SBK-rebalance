@@ -34,7 +34,7 @@
   }
   .wrap{max-width:900px;margin:0 auto;padding:20px 16px 8px;}
 
-  /* Header & Tabs */
+  /* Header */
   header{padding:28px 0 20px;border-bottom:1px solid var(--line);}
   .eyebrow{font-size:13px;color:var(--gold);letter-spacing:.02em;margin:0 0 6px;}
   h1{
@@ -45,13 +45,6 @@
     line-height:1.15;
   }
   .sub{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.5;}
-
-  .nav-tabs{display:flex;gap:8px;margin-top:20px;border-bottom:1px solid var(--line);padding-bottom:14px;}
-  .nav-tab-btn{
-    background:var(--panel);border:1px solid var(--line);color:var(--muted);
-    padding:8px 16px;border-radius:8px;font-size:13.5px;cursor:pointer;font-weight:500;
-  }
-  .nav-tab-btn.active{background:var(--gold);color:#0B0E11;border-color:var(--gold);font-weight:600;}
 
   /* Panels */
   .panel{
@@ -70,7 +63,7 @@
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
   .field{flex:1;min-width:140px;}
   label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
-  input[type=text], input[type=number], select{
+  input[type=text], input[type=number], input[type=password], select{
     width:100%;
     background:var(--panel-2);
     border:1px solid var(--line);
@@ -80,8 +73,14 @@
     font-family:'JetBrains Mono',monospace;
     font-size:14px;
   }
-  select {appearance:none; background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238B93A1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat:no-repeat; background-position:right 10px center; background-size:16px; padding-right:30px;}
   input:focus, select:focus{outline:2px solid var(--gold-dim);outline-offset:1px;}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .hint a{color:var(--gold);}
+
+  details summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary::before{content:"⚙ ";}
+  details[open] summary{margin-bottom:12px;}
 
   /* Portfolio Input Cards for Mobile */
   .holding-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
@@ -200,92 +199,75 @@
     <p class="eyebrow">PRIVATE LEDGER</p>
     <h1>Portfolio Rebalance</h1>
     <p class="sub">คำนวณแผนซื้อ/ขายเพื่อปรับพอร์ตให้ตรงเป้าหมาย — ทำงานในเครื่อง ไม่ต้องมี server</p>
-    
-    <!-- เมนูสลับหน้าหลัก -->
-    <div class="nav-tabs">
-      <button class="nav-tab-btn active" id="navPortBtn" type="button" onclick="switchMainTab('portfolio')">พอร์ตการลงทุน</button>
-      <button class="nav-tab-btn" id="navCalBtn" type="button" onclick="switchMainTab('calendar')">ปฏิทินเศรษฐกิจ</button>
-    </div>
   </header>
 
-  <!-- ส่วนที่ 1: หน้าพอร์ตการลงทุนเดิม -->
-  <div id="sectionPortfolio">
-    <div class="panel">
-      <h2>เงินสดในพอร์ต</h2>
-      <div class="row">
-        <div class="field">
-          <label>เงินสดคงเหลือ ($)</label>
-          <input type="number" id="cashInput" value="0" step="100">
-        </div>
+  <div class="panel">
+    <h2>เงินสด &amp; แหล่งราคา</h2>
+    <div class="row">
+      <div class="field">
+        <label>เงินสดคงเหลือ ($)</label>
+        <input type="number" id="cashInput" value="0" step="100">
       </div>
     </div>
-
-    <div class="panel">
-      <h2>Portfolio</h2>
-      <div class="holding-list" id="holdingsBody"></div>
-      <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
-    </div>
-
-    <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคาอัตโนมัติ & คำนวณ Rebalance</button>
-    <p class="status-line" id="statusLine"></p>
-
-    <div id="results" style="display:none;">
-      <div class="metrics">
-        <div class="metric">
-          <div class="lbl">💰 มูลค่าพอร์ตรวม</div>
-          <div class="val" id="mTotalUsd">$0.00</div>
-          <div class="sub2" id="mTotalThb">≈ ฿0 THB</div>
-        </div>
-        <div class="metric">
-          <div class="lbl">💵 เงินสดในพอร์ต</div>
-          <div class="val" id="mCashUsd">$0.00</div>
-          <div class="sub2" id="mCashThb">≈ ฿0 THB</div>
-        </div>
-        <div class="metric">
-          <div class="lbl">💱 อัตราแลกเปลี่ยน</div>
-          <div class="val" id="mRate">฿0.00 / $</div>
-          <div class="sub2" id="mCount">0 สินทรัพย์</div>
-        </div>
+    <details style="margin-top:14px;">
+      <summary>ตั้งค่าการดึงราคาอัตโนมัติ (ไม่บังคับ)</summary>
+      <div class="field">
+        <label>Finnhub API Key</label>
+        <input type="password" id="apiKey" placeholder="วางคีย์ฟรีจาก finnhub.io ที่นี่">
       </div>
-
-      <div class="tabs">
-        <button class="tab-btn active" id="tabCat" type="button">สัดส่วนรายกลุ่ม</button>
-        <button class="tab-btn" id="tabTk" type="button">สัดส่วนรายหุ้น</button>
-      </div>
-
-      <div class="charts" id="chartsCat">
-        <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Category)</h3><canvas id="chartCatCurr"></canvas></div>
-        <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Category)</h3><canvas id="chartCatTgt"></canvas></div>
-      </div>
-      <div class="charts" id="chartsTk" style="display:none;">
-        <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Ticker)</h3><canvas id="chartTkCurr"></canvas></div>
-        <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Ticker)</h3><canvas id="chartTkTgt"></canvas></div>
-      </div>
-
-      <div class="panel">
-        <h2>📋 แผนการ Rebalance รายหุ้น</h2>
-        <div class="res-cards" id="resBody"></div>
-      </div>
-    </div>
+      <p class="hint">
+        ถ้าไม่ใส่คีย์ ก็ยังใช้แอปได้ปกติ — แค่กรอกราคาเองในช่อง Price ของแต่ละรายการ<br>
+        ขอคีย์ฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> (สมัครฟรี ใช้เวลา ~1 นาที)<br>
+        อัตราแลกเปลี่ยน USD→THB ดึงจาก frankfurter.app ให้อัตโนมัติ ไม่ต้องใช้คีย์
+      </p>
+    </details>
   </div>
 
-  <!-- ส่วนที่ 2: หน้าปฏิทินเศรษฐกิจ (TradingView Widget) -->
-  <div id="sectionCalendar" style="display:none; margin-top: 18px;">
-    <div class="panel" style="padding: 12px;">
-      <h2 style="margin-bottom: 10px; padding-left: 6px;">ปฏิทินเศรษฐกิจ (Economic Calendar)</h2>
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget" style="height: 600px;"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
-        {
-          "width": "100%",
-          "height": "600",
-          "colorTheme": "dark",
-          "importanceFilter": "0,1",
-          "currencyFilter": "USD,EUR,GBP,JPY",
-          "locale": "th"
-        }
-        </script>
+  <div class="panel">
+    <h2>Portfolio</h2>
+    <div class="holding-list" id="holdingsBody"></div>
+    <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
+  </div>
+
+  <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคา & คำนวณ Rebalance</button>
+  <p class="status-line" id="statusLine"></p>
+
+  <div id="results" style="display:none;">
+    <div class="metrics">
+      <div class="metric">
+        <div class="lbl">💰 มูลค่าพอร์ตรวม</div>
+        <div class="val" id="mTotalUsd">$0.00</div>
+        <div class="sub2" id="mTotalThb">≈ ฿0 THB</div>
       </div>
+      <div class="metric">
+        <div class="lbl">💵 เงินสดในพอร์ต</div>
+        <div class="val" id="mCashUsd">$0.00</div>
+        <div class="sub2" id="mCashThb">≈ ฿0 THB</div>
+      </div>
+      <div class="metric">
+        <div class="lbl">💱 อัตราแลกเปลี่ยน</div>
+        <div class="val" id="mRate">฿0.00 / $</div>
+        <div class="sub2" id="mCount">0 สินทรัพย์</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabCat" type="button">สัดส่วนรายกลุ่ม</button>
+      <button class="tab-btn" id="tabTk" type="button">สัดส่วนรายหุ้น</button>
+    </div>
+
+    <div class="charts" id="chartsCat">
+      <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Category)</h3><canvas id="chartCatCurr"></canvas></div>
+      <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Category)</h3><canvas id="chartCatTgt"></canvas></div>
+    </div>
+    <div class="charts" id="chartsTk" style="display:none;">
+      <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Ticker)</h3><canvas id="chartTkCurr"></canvas></div>
+      <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Ticker)</h3><canvas id="chartTkTgt"></canvas></div>
+    </div>
+
+    <div class="panel">
+      <h2>📋 แผนการ Rebalance รายหุ้น</h2>
+      <div class="res-cards" id="resBody"></div>
     </div>
   </div>
 
@@ -293,30 +275,6 @@
 </div>
 
 <script>
-// ฟังก์ชันสลับหน้าหลัก (พอร์ต vs ปฏิทิน)
-function switchMainTab(tab) {
-  const pSec = document.getElementById('sectionPortfolio');
-  const cSec = document.getElementById('sectionCalendar');
-  const pBtn = document.getElementById('navPortBtn');
-  const cBtn = document.getElementById('navCalBtn');
-
-  if(tab === 'portfolio') {
-    pSec.style.display = 'block';
-    cSec.style.display = 'none';
-    pBtn.classList.add('active');
-    cBtn.classList.remove('active');
-  } else {
-    pSec.style.display = 'none';
-    cSec.style.display = 'block';
-    cBtn.classList.add('active');
-    pBtn.classList.remove('active');
-  }
-}
-
-// ฝัง API Key ถาวรตรงนี้
-const FINNHUB_API_KEY = "dafsnk1r01quvmmhdhvgdafsnk1r01quvmmhdi00";
-const CATEGORIES = ["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "OTHERS"];
-
 const DEFAULT_DATA = [
   {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false},
   {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false},
@@ -327,46 +285,41 @@ const DEFAULT_DATA = [
   {cat:"ROYALTY",  tk:"WPM",  price:0, shares:0,   tgt:7.0,  lock:false},
   {cat:"ROYALTY",  tk:"RGLD", price:0, shares:0,   tgt:5.0,  lock:false},
   {cat:"CRYPTO",   tk:"COIN", price:0, shares:35,  tgt:10.0, lock:true},
+  {cat:"US STOCK", tk:"MSFT", price:0, shares:0,   tgt:0.0,  lock:false},
+  {cat:"US STOCK", tk:"UNH",  price:0, shares:0,   tgt:0.0,  lock:false},
+  {cat:"BOND",     tk:"TLT",  price:0, shares:0,   tgt:0.0,  lock:false},
   {cat:"OTHERS",   tk:"BKR",  price:0, shares:15,  tgt:0.0,  lock:false},
   {cat:"OTHERS",   tk:"SQM",  price:0, shares:12,  tgt:0.0,  lock:false},
   {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false},
 ];
 
-let savedRows = localStorage.getItem('bullion_portfolio_rows');
-let rows = savedRows ? JSON.parse(savedRows) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+const PRESET_CATS = ["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "US STOCK", "BOND", "OTHERS"];
 
-let savedCash = localStorage.getItem('bullion_cash_balance');
-if(savedCash !== null) {
-  document.getElementById('cashInput').value = savedCash;
-}
-
-document.getElementById('cashInput').addEventListener('input', e => {
-  localStorage.setItem('bullion_cash_balance', e.target.value);
-});
-
+let rows = JSON.parse(JSON.stringify(DEFAULT_DATA));
 let charts = {};
+
 const body = document.getElementById('holdingsBody');
 const statusLine = document.getElementById('statusLine');
-
-function saveRows(){
-  localStorage.setItem('bullion_portfolio_rows', JSON.stringify(rows));
-}
 
 function renderRows(){
   body.innerHTML = '';
   rows.forEach((r, i) => {
-    const catOptions = CATEGORIES.map(c => `<option value="${c}" ${r.cat === c ? 'selected' : ''}>${c}</option>`).join('');
-    
+    // ถ้า Category ปัจจุบันไม่อยู่ใน Preset ให้ถือว่าผู้ใช้พิมพ์เอง
+    const isCustom = !PRESET_CATS.includes(r.cat) && r.cat !== '';
+
     const card = document.createElement('div');
     card.className = 'holding-card';
     card.innerHTML = `
       <div class="card-row">
         <div class="field-group cat-field">
           <label>Category</label>
-          <select data-i="${i}" data-f="cat">
-            ${catOptions}
-            ${!CATEGORIES.includes(r.cat) && r.cat ? `<option value="${r.cat}" selected>${r.cat}</option>` : ''}
-          </select>
+          <div style="display:flex; gap:4px;">
+            <select data-i="${i}" data-f="cat-select" style="flex:1;">
+              ${PRESET_CATS.map(c => `<option value="${c}" ${r.cat === c ? 'selected' : ''}>${c}</option>`).join('')}
+              <option value="CUSTOM" ${isCustom ? 'selected' : ''}>+ พิมพ์เพิ่มเอง...</option>
+            </select>
+          </div>
+          <input type="text" data-i="${i}" data-f="cat" value="${r.cat}" placeholder="พิมพ์ชื่อกลุ่ม..." style="margin-top:4px; ${isCustom || !PRESET_CATS.includes(r.cat) ? '' : 'display:none;'}">
         </div>
         <div class="field-group tk-field">
           <label>Ticker</label>
@@ -398,29 +351,46 @@ function renderRows(){
     body.appendChild(card);
   });
 
-  body.querySelectorAll('input, select').forEach(elm => {
-    elm.addEventListener('change', e => {
-      const i = +e.target.dataset.i, f = e.target.dataset.f;
-      if (f === 'lock') rows[i][f] = e.target.checked;
-      else if (f === 'cat' || f === 'tk') rows[i][f] = e.target.value.trim();
-      else rows[i][f] = parseFloat(e.target.value) || 0;
-      if (f === 'tk') rows[i].tk = rows[i].tk.toUpperCase();
-      saveRows();
+  // Event Listeners สำหรับ Dropdown และ Text Input
+  body.querySelectorAll('select[data-f="cat-select"]').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const i = +e.target.dataset.i;
+      const val = e.target.value;
+      const customInput = body.querySelector(`input[data-i="${i}"][data-f="cat"]`);
+      if (val === 'CUSTOM'){
+        customInput.style.display = 'block';
+        customInput.focus();
+        rows[i].cat = customInput.value;
+      } else {
+        customInput.style.display = 'none';
+        rows[i].cat = val;
+      }
     });
   });
+
+  body.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      if (f === 'lock') rows[i][f] = e.target.checked;
+      else if (f === 'cat') rows[i][f] = e.target.value.trim();
+      else if (f === 'tk') {
+        rows[i][f] = e.target.value.trim().toUpperCase();
+      }
+      else rows[i][f] = parseFloat(e.target.value) || 0;
+    });
+  });
+
   body.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       rows.splice(+e.target.dataset.i, 1);
       renderRows();
-      saveRows();
     });
   });
 }
 
 document.getElementById('addRowBtn').addEventListener('click', () => {
-  rows.push({cat:"PHYSICAL", tk:"", price:0, shares:0, tgt:0, lock:false});
+  rows.push({cat:"US STOCK", tk:"", price:0, shares:0, tgt:0, lock:false});
   renderRows();
-  saveRows();
 });
 
 renderRows();
@@ -434,9 +404,9 @@ async function fetchRate(){
   }catch(e){ return 34.5; }
 }
 
-async function fetchPrice(ticker){
+async function fetchPrice(ticker, apiKey){
   try{
-    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${FINNHUB_API_KEY}`);
+    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${apiKey}`);
     const j = await res.json();
     return (j && j.c && j.c > 0) ? j.c : null;
   }catch(e){ return null; }
@@ -472,20 +442,24 @@ document.getElementById('tabTk').addEventListener('click', () => {
 document.getElementById('calcBtn').addEventListener('click', async () => {
   const btn = document.getElementById('calcBtn');
   btn.disabled = true;
+  const apiKey = document.getElementById('apiKey').value.trim();
   const cashInput = parseFloat(document.getElementById('cashInput').value) || 0;
 
   statusLine.textContent = 'กำลังดึงอัตราแลกเปลี่ยน...';
   const usdThb = await fetchRate();
 
-  for (let i = 0; i < rows.length; i++){
-    if (!rows[i].tk) continue;
-    statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
-    const p = await fetchPrice(rows[i].tk);
-    if (p !== null) rows[i].price = p;
-    await new Promise(r => setTimeout(r, 120));
+  if (apiKey){
+    for (let i = 0; i < rows.length; i++){
+      if (!rows[i].tk) continue;
+      statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
+      const p = await fetchPrice(rows[i].tk, apiKey);
+      if (p !== null) rows[i].price = p;
+      await new Promise(r => setTimeout(r, 120));
+    }
+    renderRows();
+  } else {
+    statusLine.textContent = 'ไม่มี API key — ใช้ราคาที่กรอกไว้ในตาราง';
   }
-  renderRows();
-  saveRows();
 
   let totalVal = cashInput;
   const items = rows.filter(r => r.tk).map(r => {
@@ -519,6 +493,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
     catSummary[item.cat].tgt += item.tgt;
   });
 
+  // Metrics
   document.getElementById('mTotalUsd').textContent = `$${totalVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
   document.getElementById('mTotalThb').textContent = `≈ ฿${(totalVal*usdThb).toLocaleString(undefined,{maximumFractionDigits:0})} THB`;
   document.getElementById('mCashUsd').textContent = `$${cashInput.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -526,17 +501,20 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   document.getElementById('mRate').textContent = `฿${usdThb.toFixed(2)} / $`;
   document.getElementById('mCount').textContent = `${items.length} สินทรัพย์`;
 
+  // Category charts
   const catNames = Object.keys(catSummary);
   const catCurrPct = catNames.map(c => totalVal > 0 ? catSummary[c].currVal/totalVal*100 : 0);
   const catTgtPct = catNames.map(c => catSummary[c].tgt);
   pieChart('chartCatCurr', catNames, catCurrPct);
   pieChart('chartCatTgt', catNames, catTgtPct);
 
+  // Ticker charts (only >0)
   const tkCurr = results.filter(r => r.currPct > 0);
   const tkTgt = results.filter(r => r.tgt > 0);
   pieChart('chartTkCurr', tkCurr.map(r=>r.tk), tkCurr.map(r=>r.currPct));
   pieChart('chartTkTgt', tkTgt.map(r=>r.tk), tkTgt.map(r=>r.tgt));
 
+  // Results Cards Layout
   const resBody = document.getElementById('resBody');
   resBody.innerHTML = results.map(r => `
     <div class="res-card">
@@ -561,7 +539,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   `).join('');
 
   document.getElementById('results').style.display = 'block';
-  statusLine.textContent = 'ดึงราคาและคำนวณเรียบร้อยแล้ว ✓';
+  statusLine.textContent = apiKey ? 'อัปเดตราคาล่าสุดแล้ว ✓' : 'คำนวณจากราคาที่กรอกเองแล้ว ✓';
   btn.disabled = false;
 });
 </script>
