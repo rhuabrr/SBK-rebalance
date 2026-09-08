@@ -70,7 +70,7 @@ edited_df = st.data_editor(
     use_container_width=True,
 )
 
-# กดปุ่มเพื่อคำนวณและเก็บค่าลงใน st.session_state
+# กดปุ่มเพื่อคำนวณ
 if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance", type="primary"):
     with st.spinner("กำลังดึงราคาล่าสุดจาก Yahoo Finance..."):
         edited_df["Ticker"] = edited_df["Ticker"].str.strip().str.upper()
@@ -140,15 +140,15 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
             results.append({
                 "Category": item["Category"],
                 "Ticker": item["Ticker"],
-                "Price ($)": f"${item['Price']:,.2f}",
+                "Price ($)": round(float(item["Price"]), 2),
                 "Shares": item["Shares"],
-                "Current Val ($)": f"${item['Curr_Val']:,.2f}",
+                "Current Val ($)": round(float(item["Curr_Val"]), 2),
                 "Current_Pct_Num": curr_pct,
                 "Current %": f"{curr_pct:.1f}%",
                 "Target_Pct_Num": item["Target_Pct"],
                 "Target %": f"{item['Target_Pct']:.1f}%",
                 "Action": action,
-                "Est Amount ($)": f"${diff_v:,.2f}",
+                "Est Amount ($)": round(float(diff_v), 2),
             })
 
             cat = item["Category"]
@@ -157,14 +157,14 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
             cat_summary[cat]["Curr_Val"] += item["Curr_Val"]
             cat_summary[cat]["Target_Pct"] += item["Target_Pct"]
 
-        # บันทึกผลลัพธ์เก็บไว้ใน session_state เพื่อไม่ให้ข้อมูลหายเวลาคลิกเปลี่ยนหน้าหรือเลื่อนดู
+        # บันทึกข้อมูลลง session_state
         st.session_state["df_res"] = pd.DataFrame(results)
         st.session_state["cat_summary"] = cat_summary
         st.session_state["total_val"] = total_val
         st.session_state["usd_thb"] = usd_thb
         st.session_state["cash_input"] = cash_input
 
-# ถ้ายเคยกดคำนวณแล้ว ให้ดึงข้อมูลมาแสดงผลข้างล่างนี้ (อยู่นอกปุ่ม นอก if)
+# แสดงผลถ้ามีข้อมูลใน session_state แล้ว
 if "df_res" in st.session_state:
     df_res = st.session_state["df_res"]
     cat_summary = st.session_state["cat_summary"]
@@ -181,7 +181,6 @@ if "df_res" in st.session_state:
     m2.metric("💵 เงินสดในพอร์ต", f"${cash_in:,.2f}", f"≈ ฿{cash_thb:,.0f} THB")
     m3.metric("💱 อัตราแลกเปลี่ยน", f"฿{usd_thb:.2f} / $", f"สินทรัพย์ {len(df_res)} ตัว")
 
-    # 📊 ส่วนแสดงผลชาร์ท (Charts)
     st.subheader("📊 เปรียบเทียบสัดส่วนพอร์ต (Current vs Target)")
     tab1, tab2 = st.tabs(["สัดส่วนรายกลุ่ม (Category)", "สัดส่วนรายหุ้น (Tickers)"])
 
