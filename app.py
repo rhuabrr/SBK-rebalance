@@ -251,7 +251,11 @@ if st.button("🔄 ดึงราคา Real-time & คำนวณ Rebalance",
         df_res = pd.DataFrame(results)
 
         st.divider()
-        st.metric("💰 มูลค่าพอร์ตรวมทั้งหมด", f"${total_val:,.2f}")
+        # ทำการ์ด 3 ช่องสรุปภาพรวม
+        m1, m2, m3 = st.columns(3)
+        m1.metric("💰 มูลค่าพอร์ตรวม", f"${total_val:,.2f}")
+        m2.metric("💵 เงินสดในพอร์ต", f"${cash_input:,.2f}")
+        m3.metric("📦 รายการสินทรัพย์", f"{len(clean_df)} ตัว")
 
         # 📊 ส่วนแสดงผลชาร์ท (Charts)
         st.subheader("📊 เปรียบเทียบสัดส่วนพอร์ต (Current vs Target)")
