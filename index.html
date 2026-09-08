@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Bullion Ledger — Portfolio Rebalance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0B0E11;
+    --panel:#12161B;
+    --panel-2:#181D24;
+    --line:#242B33;
+    --ink:#E8E6E1;
+    --muted:#8B93A1;
+    --gold:#D4AF37;
+    --gold-dim:#8A7326;
+    --buy:#2FBF71;
+    --buy-bg:#0F2A20;
+    --sell:#E5484D;
+    --sell-bg:#341418;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-tap-highlight-color:transparent;
+    padding-bottom:60px;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:20px 16px 8px;}
+
+  /* Header */
+  header{padding:28px 0 20px;border-bottom:1px solid var(--line);}
+  .eyebrow{font-size:13px;color:var(--gold);letter-spacing:.02em;margin:0 0 6px;}
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:30px;
+    margin:0;
+    line-height:1.15;
+  }
+  .sub{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.5;}
+
+  /* Panels */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:18px;
+    margin-top:18px;
+  }
+  .panel h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:18px;
+    margin:0 0 14px;
+  }
+  .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
+  .field{flex:1;min-width:140px;}
+  label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
+  input[type=text], input[type=number], input[type=password]{
+    width:100%;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    color:var(--ink);
+    border-radius:8px;
+    padding:9px 10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:14px;
+  }
+  input:focus{outline:2px solid var(--gold-dim);outline-offset:1px;}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5;}
+  .hint a{color:var(--gold);}
+
+  details summary{cursor:pointer;color:var(--muted);font-size:13px;list-style:none;}
+  details summary::-webkit-details-marker{display:none;}
+  details summary::before{content:"⚙ ";}
+  details[open] summary{margin-bottom:12px;}
+
+  /* Table */
+  .tbl-scroll{overflow-x:auto;margin-top:4px;}
+  table{width:100%;border-collapse:collapse;min-width:640px;}
+  th{
+    text-align:left;
+    font-size:11.5px;
+    text-transform:none;
+    color:var(--muted);
+    font-weight:500;
+    padding:6px 8px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  td{
+    padding:5px 8px;
+    border-bottom:1px solid var(--line);
+    vertical-align:middle;
+  }
+  td input[type=text], td input[type=number]{
+    padding:6px 8px;
+    font-size:13px;
+    min-width:60px;
+  }
+  td.cat input{min-width:90px;}
+  td.tk input{min-width:64px;text-transform:uppercase;}
+  input[type=checkbox]{width:18px;height:18px;accent-color:var(--gold);}
+  .del-btn{
+    background:none;border:1px solid var(--line);color:var(--sell);
+    border-radius:6px;width:28px;height:28px;font-size:14px;cursor:pointer;
+  }
+  .add-row{
+    margin-top:10px;background:none;border:1px dashed var(--line);
+    color:var(--gold);border-radius:8px;padding:8px 14px;font-size:13px;
+    cursor:pointer;width:100%;
+  }
+
+  /* Buttons */
+  .btn-primary{
+    width:100%;
+    background:var(--gold);
+    color:#0B0E11;
+    font-weight:600;
+    border:none;
+    border-radius:12px;
+    height:50px;
+    font-size:16px;
+    margin-top:18px;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(212,175,55,.25);
+  }
+  .btn-primary:active{transform:translateY(1px);}
+  .btn-primary:disabled{opacity:.5;}
+  .status-line{
+    text-align:center;font-size:13px;color:var(--muted);margin-top:10px;min-height:18px;
+  }
+
+  /* Metrics */
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px;}
+  .metric{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;
+  }
+  .metric .lbl{font-size:12px;color:var(--muted);}
+  .metric .val{font-family:'JetBrains Mono',monospace;font-size:18px;margin-top:4px;}
+  .metric .sub2{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  @media(max-width:560px){.metrics{grid-template-columns:1fr;}}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;margin-top:22px;}
+  .tab-btn{
+    background:var(--panel);border:1px solid var(--line);color:var(--muted);
+    padding:9px 16px;border-radius:999px;font-size:13px;cursor:pointer;
+  }
+  .tab-btn.active{background:var(--gold);color:#0B0E11;border-color:var(--gold);font-weight:600;}
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+  @media(max-width:640px){.charts{grid-template-columns:1fr;}}
+  .chart-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
+  .chart-card h3{font-size:13px;font-weight:500;color:var(--muted);margin:0 0 8px;text-align:center;}
+  .chart-card canvas{max-height:230px;}
+
+  /* Results table */
+  .res-tbl{margin-top:14px;}
+  .res-tbl table{min-width:720px;}
+  .action{font-family:'JetBrains Mono',monospace;font-weight:600;padding:3px 8px;border-radius:6px;font-size:12.5px;display:inline-block;}
+  .action.buy{background:var(--buy-bg);color:var(--buy);}
+  .action.sell{background:var(--sell-bg);color:var(--sell);}
+  .action.hold{color:var(--muted);}
+  .num{font-family:'JetBrains Mono',monospace;font-size:13px;}
+  footer{text-align:center;color:var(--muted);font-size:11.5px;margin-top:30px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">PRIVATE LEDGER</p>
+    <h1>Portfolio Rebalance</h1>
+    <p class="sub">คำนวณแผนซื้อ/ขายเพื่อปรับพอร์ตให้ตรงเป้าหมาย — ทำงานในเครื่อง ไม่ต้องมี server</p>
+  </header>
+
+  <div class="panel">
+    <h2>เงินสด &amp; แหล่งราคา</h2>
+    <div class="row">
+      <div class="field">
+        <label>เงินสดคงเหลือ ($)</label>
+        <input type="number" id="cashInput" value="0" step="100">
+      </div>
+    </div>
+    <details style="margin-top:14px;">
+      <summary>ตั้งค่าการดึงราคาอัตโนมัติ (ไม่บังคับ)</summary>
+      <div class="field">
+        <label>Finnhub API Key</label>
+        <input type="password" id="apiKey" placeholder="วางคีย์ฟรีจาก finnhub.io ที่นี่">
+      </div>
+      <p class="hint">
+        ถ้าไม่ใส่คีย์ ก็ยังใช้แอปได้ปกติ — แค่กรอกราคาเองในคอลัมน์ "Price" ของตาราง<br>
+        ขอคีย์ฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> (สมัครฟรี ใช้เวลา ~1 นาที) แล้ววางไว้ที่นี่เพื่อให้ปุ่มด้านล่างดึงราคาล่าสุดให้อัตโนมัติ<br>
+        อัตราแลกเปลี่ยน USD→THB ดึงจาก frankfurter.app ให้อัตโนมัติ ไม่ต้องใช้คีย์
+      </p>
+    </details>
+  </div>
+
+  <div class="panel">
+    <h2>Portfolio</h2>
+    <div class="tbl-scroll">
+      <table id="holdingsTable">
+        <thead>
+          <tr>
+            <th>Category</th><th>Ticker</th><th>Price ($)</th><th>Shares</th>
+            <th>Target %</th><th>🔒</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="holdingsBody"></tbody>
+      </table>
+    </div>
+    <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
+  </div>
+
+  <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคา & คำนวณ Rebalance</button>
+  <p class="status-line" id="statusLine"></p>
+
+  <div id="results" style="display:none;">
+    <div class="metrics">
+      <div class="metric">
+        <div class="lbl">💰 มูลค่าพอร์ตรวม</div>
+        <div class="val" id="mTotalUsd">$0.00</div>
+        <div class="sub2" id="mTotalThb">≈ ฿0 THB</div>
+      </div>
+      <div class="metric">
+        <div class="lbl">💵 เงินสดในพอร์ต</div>
+        <div class="val" id="mCashUsd">$0.00</div>
+        <div class="sub2" id="mCashThb">≈ ฿0 THB</div>
+      </div>
+      <div class="metric">
+        <div class="lbl">💱 อัตราแลกเปลี่ยน</div>
+        <div class="val" id="mRate">฿0.00 / $</div>
+        <div class="sub2" id="mCount">0 สินทรัพย์</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" id="tabCat" type="button">สัดส่วนรายกลุ่ม</button>
+      <button class="tab-btn" id="tabTk" type="button">สัดส่วนรายหุ้น</button>
+    </div>
+
+    <div class="charts" id="chartsCat">
+      <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Category)</h3><canvas id="chartCatCurr"></canvas></div>
+      <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Category)</h3><canvas id="chartCatTgt"></canvas></div>
+    </div>
+    <div class="charts" id="chartsTk" style="display:none;">
+      <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Ticker)</h3><canvas id="chartTkCurr"></canvas></div>
+      <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Ticker)</h3><canvas id="chartTkTgt"></canvas></div>
+    </div>
+
+    <div class="panel res-tbl">
+      <h2>📋 แผนการ Rebalance รายหุ้น</h2>
+      <div class="tbl-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th><th>Ticker</th><th>Price</th><th>Shares</th>
+              <th>Current $</th><th>Current %</th><th>Target %</th><th>Action</th><th>Est. Amount</th>
+            </tr>
+          </thead>
+          <tbody id="resBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <footer>ราคาปิดล่าสุดจาก Finnhub · อัตราแลกเปลี่ยนจาก frankfurter.app · คำนวณในเครื่องทั้งหมด</footer>
+</div>
+
+<script>
+const DEFAULT_DATA = [
+  {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false},
+  {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false},
+  {cat:"MINERS",   tk:"AGI",  price:0, shares:326, tgt:12.0, lock:false},
+  {cat:"MINERS",   tk:"AEM",  price:0, shares:0,   tgt:9.0,  lock:false},
+  {cat:"MINERS",   tk:"GDX",  price:0, shares:0,   tgt:9.0,  lock:false},
+  {cat:"ROYALTY",  tk:"FNV",  price:0, shares:0,   tgt:8.0,  lock:false},
+  {cat:"ROYALTY",  tk:"WPM",  price:0, shares:0,   tgt:7.0,  lock:false},
+  {cat:"ROYALTY",  tk:"RGLD", price:0, shares:0,   tgt:5.0,  lock:false},
+  {cat:"CRYPTO",   tk:"COIN", price:0, shares:35,  tgt:10.0, lock:true},
+  {cat:"OTHERS",   tk:"BKR",  price:0, shares:15,  tgt:0.0,  lock:false},
+  {cat:"OTHERS",   tk:"SQM",  price:0, shares:12,  tgt:0.0,  lock:false},
+  {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false},
+];
+
+let rows = JSON.parse(JSON.stringify(DEFAULT_DATA));
+let charts = {};
+
+const body = document.getElementById('holdingsBody');
+const statusLine = document.getElementById('statusLine');
+
+function renderRows(){
+  body.innerHTML = '';
+  rows.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="cat"><input type="text" data-i="${i}" data-f="cat" value="${r.cat}"></td>
+      <td class="tk"><input type="text" data-i="${i}" data-f="tk" value="${r.tk}"></td>
+      <td><input type="number" step="0.01" data-i="${i}" data-f="price" value="${r.price}"></td>
+      <td><input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}"></td>
+      <td><input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}"></td>
+      <td style="text-align:center;"><input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''}></td>
+      <td><button class="del-btn" data-i="${i}" type="button">✕</button></td>
+    `;
+    body.appendChild(tr);
+  });
+
+  body.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('change', e => {
+      const i = +e.target.dataset.i, f = e.target.dataset.f;
+      if (f === 'lock') rows[i][f] = e.target.checked;
+      else if (f === 'cat' || f === 'tk') rows[i][f] = e.target.value.trim();
+      else rows[i][f] = parseFloat(e.target.value) || 0;
+      if (f === 'tk') rows[i].tk = rows[i].tk.toUpperCase();
+    });
+  });
+  body.querySelectorAll('.del-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      rows.splice(+e.target.dataset.i, 1);
+      renderRows();
+    });
+  });
+}
+
+document.getElementById('addRowBtn').addEventListener('click', () => {
+  rows.push({cat:"", tk:"", price:0, shares:0, tgt:0, lock:false});
+  renderRows();
+});
+
+renderRows();
+
+async function fetchRate(){
+  try{
+    const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=THB');
+    const j = await res.json();
+    const r = j.rates && j.rates.THB;
+    return (r && r > 0) ? r : 34.5;
+  }catch(e){ return 34.5; }
+}
+
+async function fetchPrice(ticker, apiKey){
+  try{
+    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${apiKey}`);
+    const j = await res.json();
+    return (j && j.c && j.c > 0) ? j.c : null;
+  }catch(e){ return null; }
+}
+
+function pieChart(canvasId, labels, values){
+  if (charts[canvasId]) charts[canvasId].destroy();
+  const ctx = document.getElementById(canvasId);
+  const palette = ['#D4AF37','#2FBF71','#5B8AC7','#C77B5B','#8A7326','#B0668F','#4FA3A3','#8B93A1','#E5484D','#A67CD1','#6FA85E','#C99A3F'];
+  charts[canvasId] = new Chart(ctx, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data: values, backgroundColor: palette, borderColor: '#12161B', borderWidth: 2 }] },
+    options: {
+      plugins: { legend: { position: 'bottom', labels: { color: '#8B93A1', boxWidth: 10, font: { size: 11 } } } },
+      cutout: '55%'
+    }
+  });
+}
+
+document.getElementById('tabCat').addEventListener('click', () => {
+  document.getElementById('tabCat').classList.add('active');
+  document.getElementById('tabTk').classList.remove('active');
+  document.getElementById('chartsCat').style.display = 'grid';
+  document.getElementById('chartsTk').style.display = 'none';
+});
+document.getElementById('tabTk').addEventListener('click', () => {
+  document.getElementById('tabTk').classList.add('active');
+  document.getElementById('tabCat').classList.remove('active');
+  document.getElementById('chartsTk').style.display = 'grid';
+  document.getElementById('chartsCat').style.display = 'none';
+});
+
+document.getElementById('calcBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('calcBtn');
+  btn.disabled = true;
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const cashInput = parseFloat(document.getElementById('cashInput').value) || 0;
+
+  statusLine.textContent = 'กำลังดึงอัตราแลกเปลี่ยน...';
+  const usdThb = await fetchRate();
+
+  if (apiKey){
+    for (let i = 0; i < rows.length; i++){
+      if (!rows[i].tk) continue;
+      statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
+      const p = await fetchPrice(rows[i].tk, apiKey);
+      if (p !== null) rows[i].price = p;
+      await new Promise(r => setTimeout(r, 120));
+    }
+    renderRows();
+  } else {
+    statusLine.textContent = 'ไม่มี API key — ใช้ราคาที่กรอกไว้ในตาราง';
+  }
+
+  let totalVal = cashInput;
+  const items = rows.filter(r => r.tk).map(r => {
+    const currVal = r.shares * r.price;
+    totalVal += currVal;
+    return { ...r, currVal };
+  });
+
+  const results = [];
+  const catSummary = {};
+
+  items.forEach(item => {
+    const currPct = totalVal > 0 ? (item.currVal / totalVal * 100) : 0;
+    const targetVal = totalVal * (item.tgt / 100);
+    let diffShares = 0, action = 'HOLD (0)', actionClass = 'hold';
+
+    if (item.lock){
+      diffShares = 0; action = 'HOLD (0)';
+    } else {
+      const targetShares = item.price > 0 ? Math.round(targetVal / item.price) : 0;
+      diffShares = targetShares - item.shares;
+      if (diffShares > 0){ action = `BUY +${diffShares}`; actionClass = 'buy'; }
+      else if (diffShares < 0){ action = `SELL ${diffShares}`; actionClass = 'sell'; }
+    }
+    const diffAmount = Math.abs(diffShares * item.price);
+
+    results.push({ ...item, currPct, action, actionClass, diffAmount });
+
+    if (!catSummary[item.cat]) catSummary[item.cat] = { currVal: 0, tgt: 0 };
+    catSummary[item.cat].currVal += item.currVal;
+    catSummary[item.cat].tgt += item.tgt;
+  });
+
+  // Metrics
+  document.getElementById('mTotalUsd').textContent = `$${totalVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  document.getElementById('mTotalThb').textContent = `≈ ฿${(totalVal*usdThb).toLocaleString(undefined,{maximumFractionDigits:0})} THB`;
+  document.getElementById('mCashUsd').textContent = `$${cashInput.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  document.getElementById('mCashThb').textContent = `≈ ฿${(cashInput*usdThb).toLocaleString(undefined,{maximumFractionDigits:0})} THB`;
+  document.getElementById('mRate').textContent = `฿${usdThb.toFixed(2)} / $`;
+  document.getElementById('mCount').textContent = `${items.length} สินทรัพย์`;
+
+  // Category charts
+  const catNames = Object.keys(catSummary);
+  const catCurrPct = catNames.map(c => totalVal > 0 ? catSummary[c].currVal/totalVal*100 : 0);
+  const catTgtPct = catNames.map(c => catSummary[c].tgt);
+  pieChart('chartCatCurr', catNames, catCurrPct);
+  pieChart('chartCatTgt', catNames, catTgtPct);
+
+  // Ticker charts (only >0)
+  const tkCurr = results.filter(r => r.currPct > 0);
+  const tkTgt = results.filter(r => r.tgt > 0);
+  pieChart('chartTkCurr', tkCurr.map(r=>r.tk), tkCurr.map(r=>r.currPct));
+  pieChart('chartTkTgt', tkTgt.map(r=>r.tk), tkTgt.map(r=>r.tgt));
+
+  // Results table
+  const resBody = document.getElementById('resBody');
+  resBody.innerHTML = results.map(r => `
+    <tr>
+      <td>${r.cat}</td>
+      <td>${r.tk}</td>
+      <td class="num">$${r.price.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="num">${r.shares}</td>
+      <td class="num">$${r.currVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="num">${r.currPct.toFixed(1)}%</td>
+      <td class="num">${r.tgt.toFixed(1)}%</td>
+      <td><span class="action ${r.actionClass}">${r.action}</span></td>
+      <td class="num">$${r.diffAmount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('results').style.display = 'block';
+  statusLine.textContent = apiKey ? 'อัปเดตราคาล่าสุดแล้ว ✓' : 'คำนวณจากราคาที่กรอกเองแล้ว ✓';
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>
