@@ -112,7 +112,7 @@ edited_df = st.data_editor(
     df_input,
     num_rows="dynamic",
     column_config={
-        "Category": st.column_config.SelectboxColumn(
+        "Category": st.column_config.TextColumn(
             "หมวดหมู่ (Category)",
             options=["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "INDEX ETF", "US STOCK", "BOND", "OTHERS"], # เพิ่มตรงนี้
             required=True
