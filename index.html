@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Bullion Ledger — Portfolio & Economic Calendar</title>
+<title>Bullion Ledger — Portfolio & Calendar</title>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -22,7 +22,6 @@
     --buy-bg:#0F2A20;
     --sell:#E5484D;
     --sell-bg:#341418;
-    --high-imp:#E5484D;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
@@ -46,6 +45,32 @@
     line-height:1.15;
   }
   .sub{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.5;}
+
+  /* Main View Navigation Tabs */
+  .main-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 15px;
+  }
+  .nav-btn {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-btn.active {
+    background: var(--gold);
+    color: #0B0E11;
+    border-color: var(--gold);
+    font-weight: 600;
+  }
 
   /* Panels */
   .panel{
@@ -151,7 +176,7 @@
   .metric .sub2{font-size:11.5px;color:var(--muted);margin-top:2px;}
   @media(max-width:560px){.metrics{grid-template-columns:1fr;}}
 
-  /* Tabs */
+  /* Sub Tabs inside Portfolio */
   .tabs{display:flex;gap:8px;margin-top:22px;}
   .tab-btn{
     background:var(--panel);border:1px solid var(--line);color:var(--muted);
@@ -184,14 +209,6 @@
   .action.hold{color:var(--muted);}
   .num{font-family:'JetBrains Mono',monospace;font-size:13px;}
 
-  /* Economic Calendar Styles */
-  .calendar-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px;}
-  .calendar-table th, .calendar-table td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);}
-  .calendar-table th{color:var(--muted);font-weight:500;font-size:12px;}
-  .badge-imp{padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;}
-  .badge-high{background:var(--sell-bg);color:var(--high-imp);}
-  .badge-med{background:rgba(212,175,55,0.15);color:var(--gold);}
-
   footer{text-align:center;color:var(--muted);font-size:11.5px;margin-top:30px;}
 </style>
 </head>
@@ -200,94 +217,113 @@
 
   <header>
     <p class="eyebrow">PRIVATE LEDGER</p>
-    <h1>Portfolio &amp; Calendar</h1>
-    <p class="sub">คำนวณแผนซื้อ/ขาย Rebalance พอร์ตอัตโนมัติ พร้อมติดตามปฏิทินเศรษฐกิจสำคัญ</p>
+    <h1>Bullion Command Center</h1>
+    <p class="sub">ระบบบริหารพอร์ต Rebalance อัตโนมัติ และปฏิทินเศรษฐกิจ</p>
+    
+    <!-- เมนูสลับหน้าหลัก -->
+    <div class="main-nav">
+      <button class="nav-btn active" id="navPortBtn" type="button">📊 Portfolio Rebalance</button>
+      <button class="nav-btn" id="navCalBtn" type="button">📅 ปฏิทินเศรษฐกิจ (Widget)</button>
+    </div>
   </header>
 
-  <div class="panel">
-    <h2>เงินสดคงเหลือ</h2>
-    <div class="row">
-      <div class="field">
-        <label>เงินสด ($)</label>
-        <input type="number" id="cashInput" value="0" step="100">
+  <!-- หน้าที่ 1: พอร์ตและ Rebalance -->
+  <div id="viewPortfolio">
+    <div class="panel">
+      <h2>เงินสดคงเหลือ</h2>
+      <div class="row">
+        <div class="field">
+          <label>เงินสด ($)</label>
+          <input type="number" id="cashInput" value="0" step="100">
+        </div>
       </div>
-    </div>
-  </div>
-
-  <div class="panel">
-    <h2>Portfolio</h2>
-    <div class="holding-list" id="holdingsBody"></div>
-    <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
-  </div>
-
-  <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคาออโต้ & คำนวณ Rebalance</button>
-  <p class="status-line" id="statusLine"></p>
-
-  <div id="results" style="display:none;">
-    <div class="metrics">
-      <div class="metric">
-        <div class="lbl">💰 มูลค่าพอร์ตรวม</div>
-        <div class="val" id="mTotalUsd">$0.00</div>
-        <div class="sub2" id="mTotalThb">≈ ฿0 THB</div>
-      </div>
-      <div class="metric">
-        <div class="lbl">💵 เงินสดในพอร์ต</div>
-        <div class="val" id="mCashUsd">$0.00</div>
-        <div class="sub2" id="mCashThb">≈ ฿0 THB</div>
-      </div>
-      <div class="metric">
-        <div class="lbl">💱 อัตราแลกเปลี่ยน</div>
-        <div class="val" id="mRate">฿0.00 / $</div>
-        <div class="sub2" id="mCount">0 สินทรัพย์</div>
-      </div>
-    </div>
-
-    <div class="tabs">
-      <button class="tab-btn active" id="tabCat" type="button">สัดส่วนรายกลุ่ม</button>
-      <button class="tab-btn" id="tabTk" type="button">สัดส่วนรายหุ้น</button>
-    </div>
-
-    <div class="charts" id="chartsCat">
-      <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Category)</h3><canvas id="chartCatCurr"></canvas></div>
-      <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Category)</h3><canvas id="chartCatTgt"></canvas></div>
-    </div>
-    <div class="charts" id="chartsTk" style="display:none;">
-      <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Ticker)</h3><canvas id="chartTkCurr"></canvas></div>
-      <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Ticker)</h3><canvas id="chartTkTgt"></canvas></div>
     </div>
 
     <div class="panel">
-      <h2>📋 แผนการ Rebalance รายหุ้น</h2>
-      <div class="res-cards" id="resBody"></div>
+      <h2>Portfolio</h2>
+      <div class="holding-list" id="holdingsBody"></div>
+      <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
+    </div>
+
+    <button class="btn-primary" id="calcBtn" type="button">🔄 ดึงราคาออโต้ & คำนวณ Rebalance</button>
+    <p class="status-line" id="statusLine"></p>
+
+    <div id="results" style="display:none;">
+      <div class="metrics">
+        <div class="metric">
+          <div class="lbl">💰 มูลค่าพอร์ตรวม</div>
+          <div class="val" id="mTotalUsd">$0.00</div>
+          <div class="sub2" id="mTotalThb">≈ ฿0 THB</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">💵 เงินสดในพอร์ต</div>
+          <div class="val" id="mCashUsd">$0.00</div>
+          <div class="sub2" id="mCashThb">≈ ฿0 THB</div>
+        </div>
+        <div class="metric">
+          <div class="lbl">💱 อัตราแลกเปลี่ยน</div>
+          <div class="val" id="mRate">฿0.00 / $</div>
+          <div class="sub2" id="mCount">0 สินทรัพย์</div>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" id="tabCat" type="button">สัดส่วนรายกลุ่ม</button>
+        <button class="tab-btn" id="tabTk" type="button">สัดส่วนรายหุ้น</button>
+      </div>
+
+      <div class="charts" id="chartsCat">
+        <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Category)</h3><canvas id="chartCatCurr"></canvas></div>
+        <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Category)</h3><canvas id="chartCatTgt"></canvas></div>
+      </div>
+      <div class="charts" id="chartsTk" style="display:none;">
+        <div class="chart-card"><h3>สัดส่วนปัจจุบัน (Ticker)</h3><canvas id="chartTkCurr"></canvas></div>
+        <div class="chart-card"><h3>สัดส่วนเป้าหมาย (Ticker)</h3><canvas id="chartTkTgt"></canvas></div>
+      </div>
+
+      <div class="panel">
+        <h2>📋 แผนการ Rebalance รายหุ้น</h2>
+        <div class="res-cards" id="resBody"></div>
+      </div>
     </div>
   </div>
 
-  <div class="panel">
-    <h2>📅 ปฏิทินเศรษฐกิจสำคัญ (Economic Calendar)</h2>
-    <div style="overflow-x:auto;">
-      <table class="calendar-table">
-        <thead>
-          <tr>
-            <th>เวลา (EST/Local)</th>
-            <th>ประเทศ</th>
-            <th>เหตุการณ์ / ตัวเลขเศรษฐกิจ</th>
-            <th>ความสำคัญ</th>
-          </tr>
-        </thead>
-        <tbody id="calBody">
-          <tr>
-            <td colspan="4" style="text-align:center; color:var(--muted);">กำลังโหลดข้อมูลปฏิทินเศรษฐกิจจาก Finnhub...</td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- หน้าที่ 2: ปฏิทินเศรษฐกิจแบบ Widget (Investing.com / Embedded) -->
+  <div id="viewCalendar" style="display:none;">
+    <div class="panel" style="padding: 10px; overflow:hidden;">
+      <h2 style="padding: 10px 10px 0 10px;">ปฏิทินเศรษฐกิจโลก (Live Economic Calendar)</h2>
+      <div style="width:100%; min-height:650px; margin-top:10px;">
+        <!-- Investing.com Economic Calendar Widget Embed -->
+        <iframe src="https://sslecal2.investing.com?columns=exc_flags,exc_currency,exc_importance,exc_actual,exc_forecast,exc_previous&importance=1,2,3&features=datepicker,timezone&countries=5,72,22,17,36,43,37,10,12,35,11,26&calType=day&timeZone=55&lang=1" width="100%" height="650" frameborder="0" allowtransparency="true" style="background:transparent; border-radius:8px;"></iframe>
+      </div>
     </div>
   </div>
 
-  <footer>ราคาปิดล่าสุดและปฏิทินจาก Finnhub · อัตราแลกเปลี่ยนจาก frankfurter.app · คำนวณในเครื่องทั้งหมด</footer>
+  <footer>ราคาปิดจาก Finnhub · วิดเจ็ตปฏิทินจาก Investing.com · อัตราแลกเปลี่ยนจาก frankfurter.app</footer>
 </div>
 
 <script>
 const EMBEDDED_API_KEY = "dafsnk1r01quvmmhdhvgdafsnk1r01quvmmhdi00";
+
+// ระบบสลับหน้าแท็บหลัก
+const navPortBtn = document.getElementById('navPortBtn');
+const navCalBtn = document.getElementById('navCalBtn');
+const viewPortfolio = document.getElementById('viewPortfolio');
+const viewCalendar = document.getElementById('viewCalendar');
+
+navPortBtn.addEventListener('click', () => {
+  navPortBtn.classList.add('active');
+  navCalBtn.classList.remove('active');
+  viewPortfolio.style.display = 'block';
+  viewCalendar.style.display = 'none';
+});
+
+navCalBtn.addEventListener('click', () => {
+  navCalBtn.classList.add('active');
+  navPortBtn.classList.remove('active');
+  viewCalendar.style.display = 'block';
+  viewPortfolio.style.display = 'none';
+});
 
 const DEFAULT_DATA = [
   {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false},
@@ -424,36 +460,6 @@ async function fetchPrice(ticker, apiKey){
   }catch(e){ return null; }
 }
 
-async function fetchEconomicCalendar(apiKey){
-  try {
-    const today = new Date().toISOString().split('T')[0];
-    const res = await fetch(`https://finnhub.io/api/v1/calendar/economic?from=${today}&to=${today}&token=${apiKey}`);
-    const j = await res.json();
-    const tbody = document.getElementById('calBody');
-    
-    if (j && j.economicCalendar && j.economicCalendar.length > 0) {
-      tbody.innerHTML = j.economicCalendar.slice(0, 10).map(item => {
-        const impClass = item.impact === 'High' ? 'badge-high' : 'badge-med';
-        return `
-          <tr>
-            <td>${item.time || 'All Day'}</td>
-            <td><strong>${item.country || 'US'}</strong></td>
-            <td>${item.event || '-'}</td>
-            <td><span class="badge-imp ${impClass}">${item.impact || 'Normal'}</span></td>
-          </tr>
-        `;
-      }).join('');
-    } else {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--muted);">ไม่มีรายการประกาศเศรษฐกิจสำคัญในวันนี้</td></tr>`;
-    }
-  } catch(e) {
-    document.getElementById('calBody').innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--sell);">ไม่สามารถโหลดปฏิทินเศรษฐกิจได้</td></tr>`;
-  }
-}
-
-// โหลดปฏิทินเศรษฐกิจทันทีเมื่อเปิดหน้าเว็บ
-fetchEconomicCalendar(EMBEDDED_API_KEY);
-
 function pieChart(canvasId, labels, values){
   if (charts[canvasId]) charts[canvasId].destroy();
   const ctx = document.getElementById(canvasId);
@@ -576,7 +582,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   `).join('');
 
   document.getElementById('results').style.display = 'block';
-  statusLine.textContent = 'ดึงราคาและปฏิทินออโต้เรียบร้อยแล้ว ✓';
+  statusLine.textContent = 'ดึงราคาและคำนวณเรียบร้อยแล้ว ✓';
   btn.disabled = false;
 });
 </script>
