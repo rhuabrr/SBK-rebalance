@@ -1052,10 +1052,29 @@ document.getElementById('shareBtn').addEventListener('click', async () => {
 </script>
 <script>
   if ('serviceWorker' in navigator) {
+    let swRefreshing = false;
+    // เมื่อ Service Worker เวอร์ชันใหม่เข้าควบคุมหน้าเพจแล้ว ให้รีเฟรชหน้าอัตโนมัติ (ครั้งเดียว)
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (swRefreshing) return;
+      swRefreshing = true;
+      window.location.reload();
+    });
+
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./pwabuilder-sw.js')
-        .then(reg => console.log('Service Worker registered!'))
-        .catch(err => console.log('Service Worker registration failed: ', err));
+      navigator.serviceWorker.register('./pwabuilder-sw.js').then(reg => {
+        // เช็คเวอร์ชันใหม่ทุกครั้งที่เปิด/โฟกัสแอป
+        reg.update().catch(() => {});
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+          newWorker.addEventListener('statechange', () => {
+            // ถ้ามี controller อยู่แล้ว แปลว่านี่คือ "อัพเดต" ไม่ใช่การติดตั้งครั้งแรก
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+            }
+          });
+        });
+      }).catch(err => console.log('Service Worker registration failed: ', err));
     });
   }
 </script>
