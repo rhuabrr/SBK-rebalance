@@ -46,7 +46,7 @@
   }
   .sub{color:var(--muted);font-size:14px;margin-top:8px;line-height:1.5;}
 
-  .nav-tabs{display:flex;gap:8px;margin-top:20px;border-bottom:1px solid var(--line);padding-bottom:14px;}
+  .nav-tabs{display:flex;gap:8px;margin-top:20px;border-bottom:1px solid var(--line);padding-bottom:14px;flex-wrap:wrap;}
   .nav-tab-btn{
     background:var(--panel);border:1px solid var(--line);color:var(--muted);
     padding:8px 16px;border-radius:8px;font-size:13.5px;cursor:pointer;font-weight:500;
@@ -67,10 +67,11 @@
     font-size:18px;
     margin:0 0 14px;
   }
+  .panel-hint{font-size:12.5px;color:var(--muted);margin:-8px 0 14px;line-height:1.5;}
   .row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;}
   .field{flex:1;min-width:140px;}
   label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;}
-  input[type=text], input[type=number], select{
+  input[type=text], input[type=number], input[type=password], select{
     width:100%;
     background:var(--panel-2);
     border:1px solid var(--line);
@@ -107,7 +108,7 @@
 
   .holding-card label{font-size:11px;margin-bottom:3px;color:var(--muted);}
   .holding-card input, .holding-card select{padding:8px 8px;font-size:13px;}
-  
+
   .card-actions {
     display:flex;
     justify-content:space-between;
@@ -115,7 +116,17 @@
     margin-top:8px;
     padding-top:8px;
     border-top:1px solid var(--line);
+    gap:8px;
+    flex-wrap:wrap;
   }
+  .card-actions-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .move-group{display:flex;gap:4px;}
+  .move-btn{
+    background:none;border:1px solid var(--line);color:var(--muted);
+    border-radius:6px;width:26px;height:26px;font-size:12px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:0;
+  }
+  .move-btn:disabled{opacity:.3;cursor:default;}
   .lock-box{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
   .del-btn{
     background:none;border:1px solid var(--line);color:var(--sell);
@@ -144,6 +155,23 @@
   }
   .btn-primary:active{transform:translateY(1px);}
   .btn-primary:disabled{opacity:.5;}
+  .btn-secondary{
+    width:100%;
+    background:none;
+    color:var(--gold);
+    font-weight:600;
+    border:1px solid var(--gold-dim);
+    border-radius:12px;
+    height:46px;
+    font-size:14.5px;
+    margin-top:10px;
+    cursor:pointer;
+  }
+  .btn-secondary:active{transform:translateY(1px);}
+  .btn-ghost{
+    background:none;border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:10px 14px;font-size:13.5px;cursor:pointer;font-weight:500;
+  }
   .status-line{
     text-align:center;font-size:13px;color:var(--muted);margin-top:10px;min-height:18px;
   }
@@ -190,21 +218,56 @@
   .action.sell{background:var(--sell-bg);color:var(--sell);}
   .action.hold{color:var(--muted);}
   .num{font-family:'JetBrains Mono',monospace;font-size:13px;}
+  .pnl-pos{color:var(--buy);}
+  .pnl-neg{color:var(--sell);}
+  .pnl-flat{color:var(--muted);}
   footer{text-align:center;color:var(--muted);font-size:11.5px;margin-top:30px;}
+
+  /* Settings */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:4px 0;}
+  .toggle-row .t-label{font-size:13.5px;color:var(--ink);}
+  .toggle-row .t-desc{font-size:12px;color:var(--muted);margin-top:2px;}
+  .switch{position:relative;width:44px;height:24px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;inset:0;background:var(--line);border-radius:999px;transition:.15s;}
+  .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:.15s;}
+  .switch input:checked + .slider{background:var(--gold-dim);}
+  .switch input:checked + .slider:before{transform:translateX(20px);background:var(--gold);}
+  .banner-warn{background:var(--sell-bg);color:var(--sell);border:1px solid #4a1e22;border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:12px;line-height:1.5;}
+  .banner-info{background:var(--panel-2);color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:12.5px;margin-top:12px;line-height:1.5;}
+  .io-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .io-row .btn-ghost{flex:1;min-width:140px;text-align:center;}
+  .file-hidden{display:none;}
+  .save-settings-btn{margin-top:4px;}
+
+  /* PIN lock overlay */
+  .lock-overlay{
+    position:fixed;inset:0;background:var(--bg);z-index:999;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+    padding:20px;text-align:center;
+  }
+  .lock-overlay h2{font-family:'Fraunces',serif;font-size:20px;margin:0;}
+  .lock-overlay input{max-width:200px;text-align:center;letter-spacing:6px;font-size:20px;}
+  .lock-err{color:var(--sell);font-size:12.5px;min-height:16px;}
+
+  .perf-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+  @media(max-width:560px){.perf-summary{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div class="wrap" id="mainWrap">
 
   <header>
     <p class="eyebrow">PRIVATE LEDGER</p>
     <h1>Portfolio Rebalance</h1>
     <p class="sub">คำนวณแผนซื้อ/ขายเพื่อปรับพอร์ตให้ตรงเป้าหมาย — ทำงานในเครื่อง ไม่ต้องมี server</p>
-    
+
     <!-- เมนูสลับหน้าหลัก -->
     <div class="nav-tabs">
       <button class="nav-tab-btn active" id="navPortBtn" type="button" onclick="switchMainTab('portfolio')">พอร์ตการลงทุน</button>
       <button class="nav-tab-btn" id="navCalBtn" type="button" onclick="switchMainTab('calendar')">ปฏิทินเศรษฐกิจ</button>
+      <button class="nav-tab-btn" id="navPerfBtn" type="button" onclick="switchMainTab('performance')">ผลตอบแทน</button>
+      <button class="nav-tab-btn" id="navSetBtn" type="button" onclick="switchMainTab('settings')">⚙️ ตั้งค่า</button>
     </div>
   </header>
 
@@ -248,6 +311,8 @@
         </div>
       </div>
 
+      <button class="btn-secondary" id="shareBtn" type="button">📤 แชร์แผน Rebalance นี้</button>
+
       <div class="tabs">
         <button class="tab-btn active" id="tabCat" type="button">สัดส่วนรายกลุ่ม</button>
         <button class="tab-btn" id="tabTk" type="button">สัดส่วนรายหุ้น</button>
@@ -289,51 +354,214 @@
     </div>
   </div>
 
+  <!-- ส่วนที่ 3: หน้าผลตอบแทน / ประวัติ -->
+  <div id="sectionPerformance" style="display:none; margin-top: 18px;">
+    <div class="panel">
+      <h2>📈 มูลค่าพอร์ตย้อนหลัง</h2>
+      <p class="panel-hint">บันทึกมูลค่าพอร์ตอัตโนมัติทุกครั้งที่กด "ดึงราคาอัตโนมัติ & คำนวณ" (1 บันทึกต่อวัน)</p>
+      <div class="chart-card" style="padding:14px;">
+        <canvas id="chartHistory" height="220"></canvas>
+      </div>
+      <div class="perf-summary" id="perfSummary">
+        <div class="metric"><div class="lbl">บันทึกล่าสุด</div><div class="val" id="perfLatest">—</div></div>
+        <div class="metric"><div class="lbl">เปลี่ยนแปลงจากครั้งก่อน</div><div class="val" id="perfDelta">—</div></div>
+        <div class="metric"><div class="lbl">จำนวนบันทึก</div><div class="val" id="perfCount">0</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ส่วนที่ 4: หน้าตั้งค่า -->
+  <div id="sectionSettings" style="display:none; margin-top: 18px;">
+    <div class="panel">
+      <h2>🔑 Finnhub API Key</h2>
+      <p class="panel-hint">Key จะถูกเก็บไว้ในเครื่องคุณเท่านั้น (localStorage) ไม่ถูกฝังในโค้ดหรืออัพขึ้น GitHub อีกต่อไป สมัคร key ฟรีได้ที่ finnhub.io</p>
+      <div class="field">
+        <label>API Key</label>
+        <input type="text" id="apiKeyInput" placeholder="วาง Finnhub API key ที่นี่">
+      </div>
+      <div id="apiKeyWarn"></div>
+    </div>
+
+    <div class="panel">
+      <h2>⚖️ กฎการ Rebalance</h2>
+      <div class="field" style="margin-bottom:14px;">
+        <label>Threshold ความคลาดเคลื่อน (%) — เสนอ BUY/SELL เฉพาะเมื่อสัดส่วนเบี่ยงเกินค่านี้</label>
+        <input type="number" id="thresholdInput" step="0.1" min="0" value="0">
+      </div>
+      <div class="toggle-row">
+        <div>
+          <div class="t-label">รองรับหุ้นเศษ (Fractional Shares)</div>
+          <div class="t-desc">อนุญาตให้แผนซื้อ/ขายเป็นทศนิยม เหมาะกับ ETF ที่ซื้อเศษหุ้นได้</div>
+        </div>
+        <label class="switch"><input type="checkbox" id="fractionalToggle"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <button class="btn-primary save-settings-btn" id="saveSettingsBtn" type="button">บันทึกการตั้งค่า</button>
+    <p class="status-line" id="settingsStatus"></p>
+
+    <div class="panel">
+      <h2>💾 ข้อมูล & สำรอง</h2>
+      <p class="panel-hint">ข้อมูลพอร์ตของคุณอยู่ใน localStorage ของเบราว์เซอร์เท่านั้น ถ้าล้าง cache หรือเปลี่ยนเครื่องข้อมูลจะหาย — สำรองเก็บไว้เป็นไฟล์ JSON เผื่อไว้ (ไฟล์นี้ไม่รวม API key)</p>
+      <div class="io-row">
+        <button class="btn-ghost" id="exportBtn" type="button">⬇️ ส่งออกข้อมูล (JSON)</button>
+        <label class="btn-ghost" for="importFile" style="cursor:pointer;">⬆️ นำเข้าข้อมูล (JSON)</label>
+        <input type="file" id="importFile" class="file-hidden" accept="application/json">
+      </div>
+      <p class="status-line" id="ioStatus"></p>
+    </div>
+
+    <div class="panel">
+      <h2>🔒 ล็อกหน้าจอด้วย PIN</h2>
+      <p class="panel-hint" id="pinCurrentStatus">ยังไม่ได้ตั้ง PIN</p>
+      <div class="row">
+        <div class="field">
+          <label>ตั้ง/เปลี่ยน PIN (ตัวเลข 4-8 หลัก)</label>
+          <input type="password" id="pinInput" inputmode="numeric" maxlength="8" placeholder="เช่น 2468">
+        </div>
+      </div>
+      <div class="io-row">
+        <button class="btn-ghost" id="setPinBtn" type="button">บันทึก PIN</button>
+        <button class="btn-ghost" id="clearPinBtn" type="button">ลบ PIN</button>
+      </div>
+      <div class="banner-warn">
+        ⚠️ นี่เป็นเพียงหน้าจอล็อกเบื้องต้น ป้องกันคนแอบดูจอเผิน ๆ เท่านั้น ไม่ใช่การเข้ารหัสข้อมูลจริง — ข้อมูลใน localStorage ยังไม่ถูกเข้ารหัส ใครที่เข้าถึงเครื่อง/เบราว์เซอร์ระดับไฟล์ระบบยังเปิดดูได้อยู่
+      </div>
+    </div>
+  </div>
+
   <footer>ราคาปิดล่าสุดจาก Finnhub · อัตราแลกเปลี่ยนจาก frankfurter.app · คำนวณในเครื่องทั้งหมด</footer>
 </div>
 
-<script>
-// ฟังก์ชันสลับหน้าหลัก (พอร์ต vs ปฏิทิน)
-function switchMainTab(tab) {
-  const pSec = document.getElementById('sectionPortfolio');
-  const cSec = document.getElementById('sectionCalendar');
-  const pBtn = document.getElementById('navPortBtn');
-  const cBtn = document.getElementById('navCalBtn');
+<datalist id="tickerSuggestions"></datalist>
 
-  if(tab === 'portfolio') {
-    pSec.style.display = 'block';
-    cSec.style.display = 'none';
-    pBtn.classList.add('active');
-    cBtn.classList.remove('active');
-  } else {
-    pSec.style.display = 'none';
-    cSec.style.display = 'block';
-    cBtn.classList.add('active');
-    pBtn.classList.remove('active');
-  }
+<div class="lock-overlay" id="lockOverlay" style="display:none;">
+  <h2>🔒 ปลดล็อกเพื่อเข้าใช้งาน</h2>
+  <input type="password" id="lockPinInput" inputmode="numeric" maxlength="8" placeholder="กรอก PIN">
+  <div class="lock-err" id="lockErr"></div>
+  <button class="btn-primary" id="lockUnlockBtn" type="button" style="max-width:200px;">ปลดล็อก</button>
+</div>
+
+<script>
+// ฟังก์ชันสลับหน้าหลัก (พอร์ต / ปฏิทิน / ผลตอบแทน / ตั้งค่า)
+function switchMainTab(tab) {
+  const sections = {
+    portfolio: document.getElementById('sectionPortfolio'),
+    calendar: document.getElementById('sectionCalendar'),
+    performance: document.getElementById('sectionPerformance'),
+    settings: document.getElementById('sectionSettings')
+  };
+  const btns = {
+    portfolio: document.getElementById('navPortBtn'),
+    calendar: document.getElementById('navCalBtn'),
+    performance: document.getElementById('navPerfBtn'),
+    settings: document.getElementById('navSetBtn')
+  };
+  Object.keys(sections).forEach(key => {
+    sections[key].style.display = (key === tab) ? 'block' : 'none';
+    btns[key].classList.toggle('active', key === tab);
+  });
+  if (tab === 'performance') renderHistoryChart();
 }
 
-// ฝัง API Key ถาวรตรงนี้
-const FINNHUB_API_KEY = "dafsnk1r01quvmmhdhvgdafsnk1r01quvmmhdi00";
 const CATEGORIES = ["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "OTHERS"];
 
 const DEFAULT_DATA = [
-  {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false},
-  {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false},
-  {cat:"MINERS",   tk:"AGI",  price:0, shares:326, tgt:12.0, lock:false},
-  {cat:"MINERS",   tk:"AEM",  price:0, shares:0,   tgt:9.0,  lock:false},
-  {cat:"MINERS",   tk:"GDX",  price:0, shares:0,   tgt:9.0,  lock:false},
-  {cat:"ROYALTY",  tk:"FNV",  price:0, shares:0,   tgt:8.0,  lock:false},
-  {cat:"ROYALTY",  tk:"WPM",  price:0, shares:0,   tgt:7.0,  lock:false},
-  {cat:"ROYALTY",  tk:"RGLD", price:0, shares:0,   tgt:5.0,  lock:false},
-  {cat:"CRYPTO",   tk:"COIN", price:0, shares:35,  tgt:10.0, lock:true},
-  {cat:"OTHERS",   tk:"BKR",  price:0, shares:15,  tgt:0.0,  lock:false},
-  {cat:"OTHERS",   tk:"SQM",  price:0, shares:12,  tgt:0.0,  lock:false},
-  {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false},
+  {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false, avgCost:0},
+  {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false, avgCost:0},
+  {cat:"MINERS",   tk:"AGI",  price:0, shares:326, tgt:12.0, lock:false, avgCost:0},
+  {cat:"MINERS",   tk:"AEM",  price:0, shares:0,   tgt:9.0,  lock:false, avgCost:0},
+  {cat:"MINERS",   tk:"GDX",  price:0, shares:0,   tgt:9.0,  lock:false, avgCost:0},
+  {cat:"ROYALTY",  tk:"FNV",  price:0, shares:0,   tgt:8.0,  lock:false, avgCost:0},
+  {cat:"ROYALTY",  tk:"WPM",  price:0, shares:0,   tgt:7.0,  lock:false, avgCost:0},
+  {cat:"ROYALTY",  tk:"RGLD", price:0, shares:0,   tgt:5.0,  lock:false, avgCost:0},
+  {cat:"CRYPTO",   tk:"COIN", price:0, shares:35,  tgt:10.0, lock:true,  avgCost:0},
+  {cat:"OTHERS",   tk:"BKR",  price:0, shares:15,  tgt:0.0,  lock:false, avgCost:0},
+  {cat:"OTHERS",   tk:"SQM",  price:0, shares:12,  tgt:0.0,  lock:false, avgCost:0},
+  {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false, avgCost:0},
 ];
 
+/* ---------------- Settings (API key / threshold / fractional) ---------------- */
+const SETTINGS_KEY = 'bullion_settings';
+function loadSettings(){
+  try{
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if(!raw) return { apiKey:'', threshold:0, fractional:false };
+    const s = JSON.parse(raw);
+    return { apiKey: s.apiKey || '', threshold: s.threshold || 0, fractional: !!s.fractional };
+  }catch(e){ return { apiKey:'', threshold:0, fractional:false }; }
+}
+function saveSettings(){
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+let settings = loadSettings();
+
+document.getElementById('apiKeyInput').value = settings.apiKey;
+document.getElementById('thresholdInput').value = settings.threshold;
+document.getElementById('fractionalToggle').checked = settings.fractional;
+if(!settings.apiKey){
+  document.getElementById('apiKeyWarn').innerHTML = '<div class="banner-warn">ยังไม่ได้ใส่ API Key — แอปจะไม่ดึงราคาล่าสุดให้อัตโนมัติ และจะใช้ราคาที่คุณกรอกเองแทน</div>';
+}
+
+document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+  settings.apiKey = document.getElementById('apiKeyInput').value.trim();
+  settings.threshold = parseFloat(document.getElementById('thresholdInput').value) || 0;
+  settings.fractional = document.getElementById('fractionalToggle').checked;
+  saveSettings();
+  document.getElementById('apiKeyWarn').innerHTML = settings.apiKey ? '' :
+    '<div class="banner-warn">ยังไม่ได้ใส่ API Key — แอปจะไม่ดึงราคาล่าสุดให้อัตโนมัติ และจะใช้ราคาที่คุณกรอกเองแทน</div>';
+  const st = document.getElementById('settingsStatus');
+  st.textContent = 'บันทึกการตั้งค่าแล้ว ✓';
+  setTimeout(() => { st.textContent = ''; }, 2500);
+  renderRows(); // step ของ shares จะเปลี่ยนตาม fractional
+});
+
+/* ---------------- PIN lock ---------------- */
+const PIN_KEY = 'bullion_pin';
+function refreshPinStatusText(){
+  const pin = localStorage.getItem(PIN_KEY);
+  document.getElementById('pinCurrentStatus').textContent = pin ? 'ตั้ง PIN ไว้แล้ว (' + pin.length + ' หลัก)' : 'ยังไม่ได้ตั้ง PIN';
+}
+refreshPinStatusText();
+
+document.getElementById('setPinBtn').addEventListener('click', () => {
+  const val = document.getElementById('pinInput').value.trim();
+  if(val.length < 4 || val.length > 8 || !/^\d+$/.test(val)){
+    document.getElementById('ioStatus').textContent = 'PIN ต้องเป็นตัวเลข 4-8 หลัก';
+    return;
+  }
+  localStorage.setItem(PIN_KEY, val);
+  document.getElementById('pinInput').value = '';
+  refreshPinStatusText();
+  document.getElementById('ioStatus').textContent = '';
+});
+document.getElementById('clearPinBtn').addEventListener('click', () => {
+  localStorage.removeItem(PIN_KEY);
+  refreshPinStatusText();
+});
+
+(function checkLock(){
+  const pin = localStorage.getItem(PIN_KEY);
+  if(pin){
+    document.getElementById('lockOverlay').style.display = 'flex';
+  }
+})();
+document.getElementById('lockUnlockBtn').addEventListener('click', tryUnlock);
+document.getElementById('lockPinInput').addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
+function tryUnlock(){
+  const pin = localStorage.getItem(PIN_KEY);
+  const val = document.getElementById('lockPinInput').value.trim();
+  if(val === pin){
+    document.getElementById('lockOverlay').style.display = 'none';
+  } else {
+    document.getElementById('lockErr').textContent = 'PIN ไม่ถูกต้อง';
+  }
+}
+
+/* ---------------- Portfolio rows ---------------- */
 let savedRows = localStorage.getItem('bullion_portfolio_rows');
 let rows = savedRows ? JSON.parse(savedRows) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+rows.forEach(r => { if (typeof r.avgCost !== 'number') r.avgCost = 0; });
 
 let savedCash = localStorage.getItem('bullion_cash_balance');
 if(savedCash !== null) {
@@ -354,10 +582,11 @@ function saveRows(){
 
 function renderRows(){
   body.innerHTML = '';
+  const shareStep = settings.fractional ? '0.0001' : '1';
   rows.forEach((r, i) => {
     const isCustom = !CATEGORIES.includes(r.cat) && r.cat !== '';
     const catOptions = CATEGORIES.map(c => `<option value="${c}" ${r.cat === c ? 'selected' : ''}>${c}</option>`).join('');
-    
+
     const card = document.createElement('div');
     card.className = 'holding-card';
     card.innerHTML = `
@@ -372,7 +601,7 @@ function renderRows(){
         </div>
         <div class="field-group tk-field">
           <label>Ticker</label>
-          <input type="text" data-i="${i}" data-f="tk" value="${r.tk}" style="text-transform:uppercase;">
+          <input type="text" data-i="${i}" data-f="tk" value="${r.tk}" style="text-transform:uppercase;" list="tickerSuggestions" autocomplete="off">
         </div>
       </div>
       <div class="card-row">
@@ -382,17 +611,29 @@ function renderRows(){
         </div>
         <div class="field-group small-field">
           <label>Shares</label>
-          <input type="number" step="1" data-i="${i}" data-f="shares" value="${r.shares}">
+          <input type="number" step="${shareStep}" data-i="${i}" data-f="shares" value="${r.shares}">
         </div>
         <div class="field-group small-field">
           <label>Target %</label>
           <input type="number" step="0.1" data-i="${i}" data-f="tgt" value="${r.tgt}">
         </div>
       </div>
+      <div class="card-row">
+        <div class="field-group small-field">
+          <label>ต้นทุนเฉลี่ย/หุ้น ($, ไม่บังคับ)</label>
+          <input type="number" step="0.01" data-i="${i}" data-f="avgCost" value="${r.avgCost || 0}">
+        </div>
+      </div>
       <div class="card-actions">
-        <div class="lock-box">
-          <input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--gold);">
-          <span>ล็อกสัดส่วน</span>
+        <div class="card-actions-left">
+          <div class="move-group">
+            <button class="move-btn" data-i="${i}" data-dir="up" type="button" ${i === 0 ? 'disabled' : ''}>▲</button>
+            <button class="move-btn" data-i="${i}" data-dir="down" type="button" ${i === rows.length - 1 ? 'disabled' : ''}>▼</button>
+          </div>
+          <div class="lock-box">
+            <input type="checkbox" data-i="${i}" data-f="lock" ${r.lock ? 'checked' : ''} style="width:18px;height:18px;accent-color:var(--gold);">
+            <span>ล็อกสัดส่วน</span>
+          </div>
         </div>
         <button class="del-btn" data-i="${i}" type="button">ลบรายการ ✕</button>
       </div>
@@ -431,6 +672,17 @@ function renderRows(){
     });
   });
 
+  // ค้นหา ticker แบบ autocomplete (ต้องมี API key)
+  let tkDebounce = null;
+  body.querySelectorAll('input[data-f="tk"]').forEach(elm => {
+    elm.addEventListener('input', e => {
+      const q = e.target.value.trim();
+      clearTimeout(tkDebounce);
+      if(!settings.apiKey || q.length < 1) return;
+      tkDebounce = setTimeout(() => searchTickers(q), 350);
+    });
+  });
+
   body.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', e => {
       rows.splice(+e.target.dataset.i, 1);
@@ -438,16 +690,168 @@ function renderRows(){
       saveRows();
     });
   });
+
+  body.querySelectorAll('.move-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = +e.currentTarget.dataset.i;
+      const dir = e.currentTarget.dataset.dir;
+      const j = dir === 'up' ? i - 1 : i + 1;
+      if(j < 0 || j >= rows.length) return;
+      [rows[i], rows[j]] = [rows[j], rows[i]];
+      renderRows();
+      saveRows();
+    });
+  });
+}
+
+async function searchTickers(query){
+  try{
+    const res = await fetch(`https://finnhub.io/api/v1/search?q=${encodeURIComponent(query)}&token=${settings.apiKey}`);
+    const j = await res.json();
+    const list = document.getElementById('tickerSuggestions');
+    list.innerHTML = '';
+    (j.result || []).slice(0, 8).forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.symbol;
+      opt.label = r.description || '';
+      list.appendChild(opt);
+    });
+  }catch(e){ /* เงียบไว้ ไม่รบกวนการพิมพ์ */ }
 }
 
 document.getElementById('addRowBtn').addEventListener('click', () => {
-  rows.push({cat:"PHYSICAL", tk:"", price:0, shares:0, tgt:0, lock:false});
+  rows.push({cat:"PHYSICAL", tk:"", price:0, shares:0, tgt:0, lock:false, avgCost:0});
   renderRows();
   saveRows();
 });
 
 renderRows();
 
+/* ---------------- Export / Import ---------------- */
+document.getElementById('exportBtn').addEventListener('click', () => {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    cash: parseFloat(document.getElementById('cashInput').value) || 0,
+    rows: rows,
+    history: loadHistory(),
+    rebalanceSettings: { threshold: settings.threshold, fractional: settings.fractional }
+    // หมายเหตุ: ไม่รวม apiKey / PIN เพื่อความปลอดภัยของไฟล์สำรอง
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `bullion-ledger-backup-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  document.getElementById('ioStatus').textContent = 'ส่งออกไฟล์สำรองแล้ว ✓';
+});
+
+document.getElementById('importFile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try{
+      const data = JSON.parse(evt.target.result);
+      if(!Array.isArray(data.rows)) throw new Error('invalid');
+      rows = data.rows.map(r => ({ cat:r.cat||'', tk:r.tk||'', price:+r.price||0, shares:+r.shares||0, tgt:+r.tgt||0, lock:!!r.lock, avgCost:+r.avgCost||0 }));
+      saveRows();
+      if(typeof data.cash === 'number'){
+        document.getElementById('cashInput').value = data.cash;
+        localStorage.setItem('bullion_cash_balance', data.cash);
+      }
+      if(Array.isArray(data.history)){
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(data.history));
+      }
+      if(data.rebalanceSettings){
+        settings.threshold = data.rebalanceSettings.threshold || 0;
+        settings.fractional = !!data.rebalanceSettings.fractional;
+        saveSettings();
+        document.getElementById('thresholdInput').value = settings.threshold;
+        document.getElementById('fractionalToggle').checked = settings.fractional;
+      }
+      renderRows();
+      document.getElementById('ioStatus').textContent = 'นำเข้าข้อมูลสำเร็จ ✓';
+    }catch(err){
+      document.getElementById('ioStatus').textContent = 'ไฟล์ไม่ถูกต้อง นำเข้าไม่สำเร็จ';
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file);
+});
+
+/* ---------------- History / Performance ---------------- */
+const HISTORY_KEY = 'bullion_history';
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }catch(e){ return []; }
+}
+function saveHistoryEntry(totalUsd, totalThb){
+  const today = new Date().toISOString().slice(0,10);
+  const hist = loadHistory();
+  const existing = hist.find(h => h.date === today);
+  if(existing){
+    existing.totalUsd = totalUsd;
+    existing.totalThb = totalThb;
+  } else {
+    hist.push({ date: today, totalUsd, totalThb });
+  }
+  hist.sort((a,b) => a.date.localeCompare(b.date));
+  const trimmed = hist.slice(-365);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+}
+function renderHistoryChart(){
+  const hist = loadHistory();
+  const ctx = document.getElementById('chartHistory');
+  if(charts.chartHistory) charts.chartHistory.destroy();
+  charts.chartHistory = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: hist.map(h => h.date),
+      datasets: [{
+        label: 'มูลค่าพอร์ต ($)',
+        data: hist.map(h => h.totalUsd),
+        borderColor: '#D4AF37',
+        backgroundColor: 'rgba(212,175,55,.15)',
+        tension: .25,
+        fill: true,
+        pointRadius: 2
+      }]
+    },
+    options: {
+      plugins: { legend: { labels: { color: '#8B93A1' } } },
+      scales: {
+        x: { ticks: { color: '#8B93A1' }, grid: { color: '#242B33' } },
+        y: { ticks: { color: '#8B93A1' }, grid: { color: '#242B33' } }
+      }
+    }
+  });
+
+  document.getElementById('perfCount').textContent = hist.length;
+  if(hist.length === 0){
+    document.getElementById('perfLatest').textContent = '—';
+    document.getElementById('perfDelta').textContent = '—';
+    return;
+  }
+  const latest = hist[hist.length - 1];
+  document.getElementById('perfLatest').textContent = `$${latest.totalUsd.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+  if(hist.length >= 2){
+    const prev = hist[hist.length - 2];
+    const diff = latest.totalUsd - prev.totalUsd;
+    const pct = prev.totalUsd > 0 ? (diff/prev.totalUsd*100) : 0;
+    const sign = diff >= 0 ? '+' : '';
+    const el = document.getElementById('perfDelta');
+    el.textContent = `${sign}$${diff.toLocaleString(undefined,{maximumFractionDigits:2})} (${sign}${pct.toFixed(2)}%)`;
+    el.className = 'val ' + (diff > 0 ? 'pnl-pos' : diff < 0 ? 'pnl-neg' : 'pnl-flat');
+  } else {
+    document.getElementById('perfDelta').textContent = 'บันทึกแรก';
+  }
+}
+renderHistoryChart();
+
+/* ---------------- Price / FX fetch ---------------- */
 async function fetchRate(){
   try{
     const res = await fetch('https://api.frankfurter.app/latest?from=USD&to=THB');
@@ -458,8 +862,9 @@ async function fetchRate(){
 }
 
 async function fetchPrice(ticker){
+  if(!settings.apiKey) return null;
   try{
-    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${FINNHUB_API_KEY}`);
+    const res = await fetch(`https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(ticker)}&token=${settings.apiKey}`);
     const j = await res.json();
     return (j && j.c && j.c > 0) ? j.c : null;
   }catch(e){ return null; }
@@ -492,6 +897,17 @@ document.getElementById('tabTk').addEventListener('click', () => {
   document.getElementById('chartsCat').style.display = 'none';
 });
 
+function fmtQty(n){
+  if(settings.fractional){
+    const rounded = Math.round(n*10000)/10000;
+    return rounded.toString();
+  }
+  return Math.round(n).toString();
+}
+
+let lastResults = [];
+let lastTotals = { totalVal:0, cashInput:0, usdThb:34.5 };
+
 document.getElementById('calcBtn').addEventListener('click', async () => {
   const btn = document.getElementById('calcBtn');
   btn.disabled = true;
@@ -500,12 +916,16 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   statusLine.textContent = 'กำลังดึงอัตราแลกเปลี่ยน...';
   const usdThb = await fetchRate();
 
-  for (let i = 0; i < rows.length; i++){
-    if (!rows[i].tk) continue;
-    statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
-    const p = await fetchPrice(rows[i].tk);
-    if (p !== null) rows[i].price = p;
-    await new Promise(r => setTimeout(r, 120));
+  if(settings.apiKey){
+    for (let i = 0; i < rows.length; i++){
+      if (!rows[i].tk) continue;
+      statusLine.textContent = `กำลังดึงราคา ${rows[i].tk} (${i+1}/${rows.length})...`;
+      const p = await fetchPrice(rows[i].tk);
+      if (p !== null) rows[i].price = p;
+      await new Promise(r => setTimeout(r, 120));
+    }
+  } else {
+    statusLine.textContent = 'ไม่มี API Key — ใช้ราคาที่กรอกไว้เอง (ตั้งค่าที่แท็บ ⚙️ ตั้งค่า เพื่อดึงราคาอัตโนมัติ)';
   }
   renderRows();
   saveRows();
@@ -525,17 +945,25 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
     const targetVal = totalVal * (item.tgt / 100);
     let diffShares = 0, action = 'HOLD (0)', actionClass = 'hold';
 
-    if (item.lock){
+    const withinThreshold = Math.abs(currPct - item.tgt) <= (settings.threshold || 0);
+
+    if (item.lock || withinThreshold){
       diffShares = 0; action = 'HOLD (0)';
     } else {
-      const targetShares = item.price > 0 ? Math.round(targetVal / item.price) : 0;
+      const rawTargetShares = item.price > 0 ? targetVal / item.price : 0;
+      const targetShares = settings.fractional ? Math.round(rawTargetShares*10000)/10000 : Math.round(rawTargetShares);
       diffShares = targetShares - item.shares;
-      if (diffShares > 0){ action = `BUY +${diffShares}`; actionClass = 'buy'; }
-      else if (diffShares < 0){ action = `SELL ${diffShares}`; actionClass = 'sell'; }
+      if (diffShares > 0){ action = `BUY +${fmtQty(diffShares)}`; actionClass = 'buy'; }
+      else if (diffShares < 0){ action = `SELL ${fmtQty(diffShares)}`; actionClass = 'sell'; }
     }
     const diffAmount = Math.abs(diffShares * item.price);
 
-    results.push({ ...item, currPct, action, actionClass, diffAmount });
+    const avgCost = item.avgCost || 0;
+    const hasCost = avgCost > 0;
+    const pnl = hasCost ? (item.price - avgCost) * item.shares : 0;
+    const pnlPct = hasCost ? ((item.price - avgCost) / avgCost * 100) : 0;
+
+    results.push({ ...item, currPct, action, actionClass, diffAmount, diffShares, hasCost, pnl, pnlPct });
 
     if (!catSummary[item.cat]) catSummary[item.cat] = { currVal: 0, tgt: 0 };
     catSummary[item.cat].currVal += item.currVal;
@@ -572,6 +1000,11 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
         <div class="res-item"><label>Shares</label><span class="num">${r.shares}</span></div>
         <div class="res-item"><label>Current Value</label><span class="num">$${r.currVal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
         <div class="res-item"><label>Current / Target %</label><span class="num">${r.currPct.toFixed(1)}% / ${r.tgt.toFixed(1)}%</span></div>
+        ${r.hasCost ? `
+        <div class="res-item" style="grid-column:span 2;">
+          <label>Unrealized P&amp;L (ต้นทุน $${r.avgCost.toFixed(2)}/หุ้น)</label>
+          <span class="num ${r.pnl > 0 ? 'pnl-pos' : r.pnl < 0 ? 'pnl-neg' : 'pnl-flat'}">${r.pnl >= 0 ? '+' : ''}$${r.pnl.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})} (${r.pnlPct >= 0 ? '+' : ''}${r.pnlPct.toFixed(1)}%)</span>
+        </div>` : ``}
         <div class="res-item" style="grid-column:span 2; margin-top:4px;">
           <label>Action & Est. Amount</label>
           <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
@@ -584,8 +1017,37 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
   `).join('');
 
   document.getElementById('results').style.display = 'block';
-  statusLine.textContent = 'ดึงราคาและคำนวณเรียบร้อยแล้ว ✓';
+  statusLine.textContent = settings.apiKey ? 'ดึงราคาและคำนวณเรียบร้อยแล้ว ✓' : 'คำนวณเรียบร้อยแล้ว (ใช้ราคาที่กรอกเอง) ✓';
   btn.disabled = false;
+
+  lastResults = results;
+  lastTotals = { totalVal, cashInput, usdThb };
+  saveHistoryEntry(totalVal, totalVal * usdThb);
+});
+
+/* ---------------- Share plan ---------------- */
+document.getElementById('shareBtn').addEventListener('click', async () => {
+  if(!lastResults.length){ return; }
+  const actionable = lastResults.filter(r => r.diffShares !== 0);
+  const lines = [
+    `📊 Bullion Ledger — Rebalance Plan`,
+    `วันที่: ${new Date().toLocaleDateString('th-TH')}`,
+    `มูลค่ารวม: $${lastTotals.totalVal.toLocaleString(undefined,{maximumFractionDigits:2})} (≈ ฿${(lastTotals.totalVal*lastTotals.usdThb).toLocaleString(undefined,{maximumFractionDigits:0})})`,
+    ``,
+    ...(actionable.length ? actionable.map(r => `${r.tk}: ${r.action}  ($${r.diffAmount.toLocaleString(undefined,{maximumFractionDigits:2})})`) : ['ไม่มีรายการที่ต้องปรับ (อยู่ในเกณฑ์ threshold แล้ว)'])
+  ];
+  const text = lines.join('\n');
+
+  if(navigator.share){
+    try{ await navigator.share({ title: 'Rebalance Plan', text }); }catch(e){ /* user cancelled */ }
+  } else if(navigator.clipboard){
+    try{
+      await navigator.clipboard.writeText(text);
+      statusLine.textContent = 'คัดลอกแผน Rebalance แล้ว 📋';
+    }catch(e){
+      statusLine.textContent = 'แชร์ไม่สำเร็จ ลองคัดลอกด้วยตัวเอง';
+    }
+  }
 });
 </script>
 <script>
