@@ -421,7 +421,7 @@
          เพราะ widget "Market Overview" ด้านบนแสดงข้อมูลกลุ่มนี้ไม่เสถียร -->
     <div class="panel" style="padding: 12px;">
       <h2 style="margin-bottom: 10px; padding-left: 6px;">📊 ดัชนีหุ้น, VIX, Dollar Index & Bond Yield</h2>
-      <p class="panel-hint" style="padding-left: 6px;">แตะชื่อรายการเพื่อสลับดูกราฟแต่ละตัว</p>
+      <p class="panel-hint" style="padding-left: 6px;">แตะชื่อรายการเพื่อสลับดูกราฟแต่ละตัว — VIX และ Dollar Index เป็นราคา CFD จากโบรกเกอร์ Capital.com (เกาะราคาจริงแบบเรียลไทม์ แต่เป็นคนละสัญญากับ CBOE/ICE ตัวจริงซึ่งปิดกั้นการฝังวิดเจ็ตสาธารณะ) ส่วน Bond Yield ยังไม่มีทางเลือกฟรีแบบเรียลไทม์ จึงใช้ข้อมูล FRED ที่อัพเดตวันละ 1 ครั้งแทน</p>
       <div class="tradingview-widget-container">
         <div class="tradingview-widget-container__widget"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
@@ -429,11 +429,11 @@
           "symbols": [
             ["S&P 500", "FOREXCOM:SPXUSD|1D"],
             ["Nasdaq 100", "FOREXCOM:NSXUSD|1D"],
-            ["VIX", "TVC:VIX|1D"],
-            ["US Dollar Index", "TVC:DXY|1D"],
-            ["US 10Y Yield", "TVC:US10Y|1D"],
-            ["US 20Y Yield", "TVC:US20Y|1D"],
-            ["US 30Y Yield", "TVC:US30Y|1D"]
+            ["VIX (เรียลไทม์)", "CAPITALCOM:VIX|1D"],
+            ["US Dollar Index (เรียลไทม์)", "CAPITALCOM:DXY|1D"],
+            ["US 10Y Yield (รายวัน)", "FRED:DGS10|1D"],
+            ["US 20Y Yield (รายวัน)", "FRED:DGS20|1D"],
+            ["US 30Y Yield (รายวัน)", "FRED:DGS30|1D"]
           ],
           "chartOnly": false,
           "width": "100%",
