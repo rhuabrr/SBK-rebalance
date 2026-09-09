@@ -266,6 +266,7 @@
     <div class="nav-tabs">
       <button class="nav-tab-btn active" id="navPortBtn" type="button" onclick="switchMainTab('portfolio')">พอร์ตการลงทุน</button>
       <button class="nav-tab-btn" id="navCalBtn" type="button" onclick="switchMainTab('calendar')">ปฏิทินเศรษฐกิจ</button>
+      <button class="nav-tab-btn" id="navMktBtn" type="button" onclick="switchMainTab('markets')">🌍 ตลาดโลก</button>
       <button class="nav-tab-btn" id="navPerfBtn" type="button" onclick="switchMainTab('performance')">ผลตอบแทน</button>
       <button class="nav-tab-btn" id="navSetBtn" type="button" onclick="switchMainTab('settings')">⚙️ ตั้งค่า</button>
     </div>
@@ -348,6 +349,80 @@
           "importanceFilter": "0,1",
           "currencyFilter": "USD,EUR,GBP,JPY",
           "locale": "th"
+        }
+        </script>
+      </div>
+    </div>
+  </div>
+
+  <!-- ส่วนที่ 2.5: หน้าตลาดโลก (TradingView Market Overview Widget) -->
+  <div id="sectionMarkets" style="display:none; margin-top: 18px;">
+    <div class="panel" style="padding: 12px;">
+      <h2 style="margin-bottom: 10px; padding-left: 6px;">🌍 ภาพรวมตลาดโลก</h2>
+      <p class="panel-hint" style="padding-left: 6px;">ข้อมูลจาก TradingView แบบเรียลไทม์ ไม่ต้องใช้ API key แยกจากราคาพอร์ตของคุณ — ปัดแท็บด้านล่างเพื่อดูหมวดอื่น</p>
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+        {
+          "colorTheme": "dark",
+          "dateRange": "12M",
+          "showChart": true,
+          "locale": "th",
+          "width": "100%",
+          "height": "600",
+          "largeChartUrl": "",
+          "isTransparent": true,
+          "showSymbolLogo": true,
+          "showFloatingTooltip": false,
+          "plotLineColorGrowing": "rgba(212, 175, 55, 1)",
+          "plotLineColorFalling": "rgba(212, 175, 55, 1)",
+          "gridLineColor": "rgba(36, 43, 51, 0)",
+          "scaleFontColor": "rgba(139, 147, 161, 1)",
+          "belowLineFillColorGrowing": "rgba(212, 175, 55, 0.12)",
+          "belowLineFillColorFalling": "rgba(212, 175, 55, 0.12)",
+          "belowLineFillColorGrowingBottom": "rgba(212, 175, 55, 0)",
+          "belowLineFillColorFallingBottom": "rgba(212, 175, 55, 0)",
+          "symbolActiveColor": "rgba(212, 175, 55, 0.12)",
+          "tabs": [
+            {
+              "title": "โลหะมีค่า",
+              "symbols": [
+                { "s": "TVC:GOLD", "d": "Gold Spot" },
+                { "s": "TVC:SILVER", "d": "Silver Spot" }
+              ],
+              "originalTitle": "Precious Metals"
+            },
+            {
+              "title": "Crypto",
+              "symbols": [
+                { "s": "COINBASE:BTCUSD", "d": "Bitcoin" },
+                { "s": "COINBASE:ETHUSD", "d": "Ethereum" }
+              ],
+              "originalTitle": "Crypto"
+            },
+            {
+              "title": "น้ำมัน & FX",
+              "symbols": [
+                { "s": "TVC:USOIL", "d": "WTI Crude Oil" },
+                { "s": "TVC:UKOIL", "d": "Brent Crude Oil" },
+                { "s": "TVC:DXY", "d": "US Dollar Index" },
+                { "s": "FX_IDC:USDTHB", "d": "USD/THB" },
+                { "s": "FX:USDJPY", "d": "USD/JPY" },
+                { "s": "FX:EURUSD", "d": "EUR/USD" }
+              ],
+              "originalTitle": "Oil & FX"
+            },
+            {
+              "title": "ดัชนี & Bond",
+              "symbols": [
+                { "s": "TVC:SPX", "d": "S&P 500" },
+                { "s": "TVC:NDX", "d": "Nasdaq 100" },
+                { "s": "TVC:VIX", "d": "VIX" },
+                { "s": "TVC:US10Y", "d": "US 10Y Yield" }
+              ],
+              "originalTitle": "Indices & Bond"
+            }
+          ]
         }
         </script>
       </div>
@@ -443,17 +518,19 @@
 </div>
 
 <script>
-// ฟังก์ชันสลับหน้าหลัก (พอร์ต / ปฏิทิน / ผลตอบแทน / ตั้งค่า)
+// ฟังก์ชันสลับหน้าหลัก (พอร์ต / ปฏิทิน / ตลาดโลก / ผลตอบแทน / ตั้งค่า)
 function switchMainTab(tab) {
   const sections = {
     portfolio: document.getElementById('sectionPortfolio'),
     calendar: document.getElementById('sectionCalendar'),
+    markets: document.getElementById('sectionMarkets'),
     performance: document.getElementById('sectionPerformance'),
     settings: document.getElementById('sectionSettings')
   };
   const btns = {
     portfolio: document.getElementById('navPortBtn'),
     calendar: document.getElementById('navCalBtn'),
+    markets: document.getElementById('navMktBtn'),
     performance: document.getElementById('navPerfBtn'),
     settings: document.getElementById('navSetBtn')
   };
