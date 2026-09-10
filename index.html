@@ -138,6 +138,14 @@
     color:var(--gold);border-radius:8px;padding:10px 14px;font-size:14px;
     cursor:pointer;width:100%;font-weight:500;
   }
+  .txn-panel{
+    margin-top:8px; padding-top:8px; border-top:1px dashed var(--line);
+  }
+  .txn-panel input, .txn-panel select{padding:8px 8px;font-size:13px;}
+  .txn-del-btn{
+    background:none;border:1px solid var(--line);color:var(--sell);
+    border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer;
+  }
 
   /* Buttons */
   .btn-primary{
@@ -250,7 +258,7 @@
   .lock-overlay input{max-width:200px;text-align:center;letter-spacing:6px;font-size:20px;}
   .lock-err{color:var(--sell);font-size:12.5px;min-height:16px;}
 
-  .perf-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+  .perf-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;}
   @media(max-width:560px){.perf-summary{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -286,6 +294,7 @@
 
     <div class="panel">
       <h2>Portfolio</h2>
+      <div id="targetSumInfo" class="banner-info" style="margin-top:0; margin-bottom:12px;"></div>
       <div class="holding-list" id="holdingsBody"></div>
       <button class="add-row" id="addRowBtn" type="button">+ เพิ่มรายการ</button>
     </div>
@@ -410,59 +419,15 @@
                 { "s": "FX:EURUSD", "d": "EUR/USD" }
               ],
               "originalTitle": "Oil & FX"
+            },
+            {
+              "title": "ดัชนี",
+              "symbols": [
+                { "s": "FOREXCOM:SPXUSD", "d": "S&P 500" },
+                { "s": "FOREXCOM:NSXUSD", "d": "Nasdaq 100" }
+              ],
+              "originalTitle": "Indices"
             }
-          ]
-        }
-        </script>
-      </div>
-    </div>
-
-    <!-- ดัชนีหุ้น / VIX / Dollar Index / Bond Yield ใช้ widget "Symbol Overview" แยกต่างหาก
-         เพราะ widget "Market Overview" ด้านบนแสดงข้อมูลกลุ่มนี้ไม่เสถียร -->
-    <div class="panel" style="padding: 12px;">
-      <h2 style="margin-bottom: 10px; padding-left: 6px;">📊 ดัชนีหุ้น, VIX, Dollar Index & Bond Yield</h2>
-      <p class="panel-hint" style="padding-left: 6px;">แตะชื่อรายการเพื่อสลับดูกราฟแต่ละตัว — VIX และ Dollar Index เป็นราคา CFD จากโบรกเกอร์ Capital.com (เกาะราคาจริงแบบเรียลไทม์ แต่เป็นคนละสัญญากับ CBOE/ICE ตัวจริงซึ่งปิดกั้นการฝังวิดเจ็ตสาธารณะ) ส่วน Bond Yield ยังไม่มีทางเลือกฟรีแบบเรียลไทม์ จึงใช้ข้อมูล FRED ที่อัพเดตวันละ 1 ครั้งแทน</p>
-      <div class="tradingview-widget-container">
-        <div class="tradingview-widget-container__widget"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-        {
-          "symbols": [
-            ["S&P 500", "FOREXCOM:SPXUSD|1D"],
-            ["Nasdaq 100", "FOREXCOM:NSXUSD|1D"],
-            ["VIX (เรียลไทม์)", "CAPITALCOM:VIX|1D"],
-            ["US Dollar Index (เรียลไทม์)", "CAPITALCOM:DXY|1D"],
-            ["US 10Y Yield (รายวัน)", "FRED:DGS10|1D"],
-            ["US 20Y Yield (รายวัน)", "FRED:DGS20|1D"],
-            ["US 30Y Yield (รายวัน)", "FRED:DGS30|1D"]
-          ],
-          "chartOnly": false,
-          "width": "100%",
-          "height": "500",
-          "locale": "th",
-          "colorTheme": "dark",
-          "autosize": false,
-          "showVolume": false,
-          "showMA": false,
-          "hideDateRanges": false,
-          "hideMarketStatus": false,
-          "hideSymbolLogo": false,
-          "scalePosition": "right",
-          "scaleMode": "Normal",
-          "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-          "fontSize": "12",
-          "noTimeScale": false,
-          "valuesTracking": "1",
-          "changeMode": "price-and-percent",
-          "chartType": "area",
-          "lineWidth": 2,
-          "lineType": 0,
-          "dateRanges": [
-            "1d|1",
-            "1m|30",
-            "3m|60",
-            "12m|1D",
-            "60m|1W",
-            "all|1M"
           ]
         }
         </script>
@@ -482,6 +447,7 @@
         <div class="metric"><div class="lbl">บันทึกล่าสุด</div><div class="val" id="perfLatest">—</div></div>
         <div class="metric"><div class="lbl">เปลี่ยนแปลงจากครั้งก่อน</div><div class="val" id="perfDelta">—</div></div>
         <div class="metric"><div class="lbl">จำนวนบันทึก</div><div class="val" id="perfCount">0</div></div>
+        <div class="metric"><div class="lbl">Realized P&amp;L สะสม (จากประวัติซื้อขาย)</div><div class="val" id="perfRealized">$0.00</div></div>
       </div>
     </div>
   </div>
@@ -543,6 +509,15 @@
       <div class="banner-warn">
         ⚠️ นี่เป็นเพียงหน้าจอล็อกเบื้องต้น ป้องกันคนแอบดูจอเผิน ๆ เท่านั้น ไม่ใช่การเข้ารหัสข้อมูลจริง — ข้อมูลใน localStorage ยังไม่ถูกเข้ารหัส ใครที่เข้าถึงเครื่อง/เบราว์เซอร์ระดับไฟล์ระบบยังเปิดดูได้อยู่
       </div>
+
+      <p class="panel-hint" id="bioStatusInfo" style="margin-top:16px;"></p>
+      <div class="io-row">
+        <button class="btn-ghost" id="setupBioBtn" type="button">🔐 ตั้งค่าลายนิ้วมือ/Face ID</button>
+        <button class="btn-ghost" id="clearBioBtn" type="button">ลบข้อมูลไบโอเมตริกซ์</button>
+      </div>
+      <div class="banner-info">
+        ต้องตั้ง PIN ไว้เป็นตัวสำรองก่อนถึงจะเปิดใช้ไบโอเมตริกซ์ได้ (เผื่อกรณีลายนิ้วมือ/Face ID ใช้ไม่ได้) — การยืนยันเกิดขึ้นในเครื่องผ่านเซนเซอร์ของอุปกรณ์เท่านั้น ไม่มีการส่งข้อมูลไปที่ใด แต่เนื่องจากแอปนี้ไม่มี server ตรวจสอบ จึงเป็นการล็อกหน้าจอเช่นเดียวกับ PIN ไม่ใช่การเข้ารหัสข้อมูล
+      </div>
     </div>
   </div>
 
@@ -553,9 +528,10 @@
 
 <div class="lock-overlay" id="lockOverlay" style="display:none;">
   <h2>🔒 ปลดล็อกเพื่อเข้าใช้งาน</h2>
+  <button class="btn-primary" id="lockBioBtn" type="button" style="max-width:240px; display:none;">🔐 ปลดล็อกด้วยลายนิ้วมือ/Face ID</button>
   <input type="password" id="lockPinInput" inputmode="numeric" maxlength="8" placeholder="กรอก PIN">
   <div class="lock-err" id="lockErr"></div>
-  <button class="btn-primary" id="lockUnlockBtn" type="button" style="max-width:200px;">ปลดล็อก</button>
+  <button class="btn-primary" id="lockUnlockBtn" type="button" style="max-width:200px;">ปลดล็อกด้วย PIN</button>
 </div>
 
 <script>
@@ -579,24 +555,24 @@ function switchMainTab(tab) {
     sections[key].style.display = (key === tab) ? 'block' : 'none';
     btns[key].classList.toggle('active', key === tab);
   });
-  if (tab === 'performance') renderHistoryChart();
+  if (tab === 'performance') { renderHistoryChart(); renderRealizedPnl(); }
 }
 
 const CATEGORIES = ["PHYSICAL", "MINERS", "ROYALTY", "CRYPTO", "OTHERS"];
 
 const DEFAULT_DATA = [
-  {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false, avgCost:0},
-  {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false, avgCost:0},
-  {cat:"MINERS",   tk:"AGI",  price:0, shares:326, tgt:12.0, lock:false, avgCost:0},
-  {cat:"MINERS",   tk:"AEM",  price:0, shares:0,   tgt:9.0,  lock:false, avgCost:0},
-  {cat:"MINERS",   tk:"GDX",  price:0, shares:0,   tgt:9.0,  lock:false, avgCost:0},
-  {cat:"ROYALTY",  tk:"FNV",  price:0, shares:0,   tgt:8.0,  lock:false, avgCost:0},
-  {cat:"ROYALTY",  tk:"WPM",  price:0, shares:0,   tgt:7.0,  lock:false, avgCost:0},
-  {cat:"ROYALTY",  tk:"RGLD", price:0, shares:0,   tgt:5.0,  lock:false, avgCost:0},
-  {cat:"CRYPTO",   tk:"COIN", price:0, shares:35,  tgt:10.0, lock:true,  avgCost:0},
-  {cat:"OTHERS",   tk:"BKR",  price:0, shares:15,  tgt:0.0,  lock:false, avgCost:0},
-  {cat:"OTHERS",   tk:"SQM",  price:0, shares:12,  tgt:0.0,  lock:false, avgCost:0},
-  {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false, avgCost:0},
+  {cat:"PHYSICAL", tk:"PHYS", price:0, shares:590, tgt:24.0, lock:false, avgCost:0, txns:[]},
+  {cat:"PHYSICAL", tk:"PSLV", price:0, shares:557, tgt:16.0, lock:false, avgCost:0, txns:[]},
+  {cat:"MINERS",   tk:"AGI",  price:0, shares:326, tgt:12.0, lock:false, avgCost:0, txns:[]},
+  {cat:"MINERS",   tk:"AEM",  price:0, shares:0,   tgt:9.0,  lock:false, avgCost:0, txns:[]},
+  {cat:"MINERS",   tk:"GDX",  price:0, shares:0,   tgt:9.0,  lock:false, avgCost:0, txns:[]},
+  {cat:"ROYALTY",  tk:"FNV",  price:0, shares:0,   tgt:8.0,  lock:false, avgCost:0, txns:[]},
+  {cat:"ROYALTY",  tk:"WPM",  price:0, shares:0,   tgt:7.0,  lock:false, avgCost:0, txns:[]},
+  {cat:"ROYALTY",  tk:"RGLD", price:0, shares:0,   tgt:5.0,  lock:false, avgCost:0, txns:[]},
+  {cat:"CRYPTO",   tk:"COIN", price:0, shares:35,  tgt:10.0, lock:true,  avgCost:0, txns:[]},
+  {cat:"OTHERS",   tk:"BKR",  price:0, shares:15,  tgt:0.0,  lock:false, avgCost:0, txns:[]},
+  {cat:"OTHERS",   tk:"SQM",  price:0, shares:12,  tgt:0.0,  lock:false, avgCost:0, txns:[]},
+  {cat:"OTHERS",   tk:"NPKI", price:0, shares:32,  tgt:0.0,  lock:false, avgCost:0, txns:[]},
 ];
 
 /* ---------------- Settings (API key / threshold / fractional) ---------------- */
@@ -658,13 +634,44 @@ document.getElementById('clearPinBtn').addEventListener('click', () => {
   refreshPinStatusText();
 });
 
+/* ---------------- Biometric unlock (WebAuthn) ---------------- */
+const BIO_KEY = 'bullion_bio_credential_id';
+
+function b64ToBytes(b64){ return Uint8Array.from(atob(b64), c => c.charCodeAt(0)); }
+function bytesToB64(bytes){ return btoa(String.fromCharCode(...new Uint8Array(bytes))); }
+
+async function tryBiometricUnlock(){
+  const idB64 = localStorage.getItem(BIO_KEY);
+  if(!idB64) return;
+  try{
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    await navigator.credentials.get({
+      publicKey: {
+        challenge,
+        allowCredentials: [{ id: b64ToBytes(idB64), type: 'public-key' }],
+        userVerification: 'required',
+        timeout: 60000
+      }
+    });
+    document.getElementById('lockOverlay').style.display = 'none';
+  }catch(e){
+    document.getElementById('lockErr').textContent = 'ยืนยันไบโอเมตริกซ์ไม่สำเร็จ ใช้ PIN แทนได้เลย';
+  }
+}
+
 (function checkLock(){
   const pin = localStorage.getItem(PIN_KEY);
   if(pin){
     document.getElementById('lockOverlay').style.display = 'flex';
+    if(localStorage.getItem(BIO_KEY)){
+      document.getElementById('lockBioBtn').style.display = 'block';
+      // ลองปลดล็อกด้วยไบโอเมตริกซ์ให้อัตโนมัติทันทีที่เข้าแอป
+      tryBiometricUnlock();
+    }
   }
 })();
 document.getElementById('lockUnlockBtn').addEventListener('click', tryUnlock);
+document.getElementById('lockBioBtn').addEventListener('click', tryBiometricUnlock);
 document.getElementById('lockPinInput').addEventListener('keydown', e => { if(e.key === 'Enter') tryUnlock(); });
 function tryUnlock(){
   const pin = localStorage.getItem(PIN_KEY);
@@ -676,10 +683,63 @@ function tryUnlock(){
   }
 }
 
+async function isBioAvailable(){
+  return !!(window.PublicKeyCredential &&
+    typeof PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable === 'function' &&
+    await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false));
+}
+
+function refreshBioStatusText(){
+  const el = document.getElementById('bioStatusInfo');
+  const has = !!localStorage.getItem(BIO_KEY);
+  el.textContent = has ? 'ตั้งค่าไบโอเมตริกซ์ไว้แล้ว ✓' : 'ยังไม่ได้ตั้งค่าไบโอเมตริกซ์';
+}
+refreshBioStatusText();
+
+(async function initBioSetting(){
+  const available = await isBioAvailable();
+  const setupBtn = document.getElementById('setupBioBtn');
+  if(!available){
+    setupBtn.disabled = true;
+    setupBtn.textContent = '🔐 อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับ';
+  }
+})();
+
+document.getElementById('setupBioBtn').addEventListener('click', async () => {
+  if(!localStorage.getItem(PIN_KEY)){
+    document.getElementById('bioStatusInfo').textContent = 'ต้องตั้ง PIN ไว้ก่อน (เป็นตัวสำรอง) ถึงจะตั้งไบโอเมตริกซ์ได้';
+    return;
+  }
+  try{
+    const challenge = crypto.getRandomValues(new Uint8Array(32));
+    const userId = crypto.getRandomValues(new Uint8Array(16));
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge,
+        rp: { name: 'Bullion Ledger' },
+        user: { id: userId, name: 'bullion-local-user', displayName: 'Bullion Ledger' },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000
+      }
+    });
+    localStorage.setItem(BIO_KEY, bytesToB64(cred.rawId));
+    refreshBioStatusText();
+    document.getElementById('bioStatusInfo').textContent = 'ตั้งค่าไบโอเมตริกซ์สำเร็จ ✓';
+  }catch(e){
+    document.getElementById('bioStatusInfo').textContent = 'ตั้งค่าไม่สำเร็จ หรือถูกยกเลิก ลองใหม่อีกครั้ง';
+  }
+});
+
+document.getElementById('clearBioBtn').addEventListener('click', () => {
+  localStorage.removeItem(BIO_KEY);
+  refreshBioStatusText();
+});
+
 /* ---------------- Portfolio rows ---------------- */
 let savedRows = localStorage.getItem('bullion_portfolio_rows');
 let rows = savedRows ? JSON.parse(savedRows) : JSON.parse(JSON.stringify(DEFAULT_DATA));
-rows.forEach(r => { if (typeof r.avgCost !== 'number') r.avgCost = 0; });
+rows.forEach(r => { if (typeof r.avgCost !== 'number') r.avgCost = 0; if (!Array.isArray(r.txns)) r.txns = []; });
 
 let savedCash = localStorage.getItem('bullion_cash_balance');
 if(savedCash !== null) {
@@ -698,12 +758,54 @@ function saveRows(){
   localStorage.setItem('bullion_portfolio_rows', JSON.stringify(rows));
 }
 
+let openTxnPanels = new Set();
+
+function computeCostBasis(txns){
+  const sorted = (txns || []).slice().sort((a, b) => (a.d || '').localeCompare(b.d || ''));
+  let qty = 0, avgCost = 0, realized = 0;
+  sorted.forEach(tx => {
+    const q = +tx.q || 0, p = +tx.p || 0;
+    if (tx.t === 'BUY') {
+      avgCost = (qty + q > 0) ? (avgCost * qty + p * q) / (qty + q) : 0;
+      qty += q;
+    } else {
+      realized += (p - avgCost) * q;
+      qty -= q;
+    }
+  });
+  return { qty, avgCost, realized };
+}
+
+function updateTargetSumInfo(){
+  const sum = rows.reduce((s, r) => s + (r.tgt || 0), 0);
+  const el = document.getElementById('targetSumInfo');
+  const cashImplied = 100 - sum;
+  if (sum > 100.05) {
+    el.className = 'banner-warn';
+    el.innerHTML = `⚠️ รวม Target ทุกรายการ = ${sum.toFixed(1)}% ซึ่งเกิน 100% — ตรวจสอบตัวเลขอีกครั้ง`;
+  } else {
+    el.className = 'banner-info';
+    el.innerHTML = `รวม Target ของสินทรัพย์ = ${sum.toFixed(1)}% (เท่ากับตั้งเป้าเงินสดไว้โดยนัย ${cashImplied.toFixed(1)}%)`;
+  }
+}
+
 function renderRows(){
   body.innerHTML = '';
   const shareStep = settings.fractional ? '0.0001' : '1';
   rows.forEach((r, i) => {
     const isCustom = !CATEGORIES.includes(r.cat) && r.cat !== '';
     const catOptions = CATEGORIES.map(c => `<option value="${c}" ${r.cat === c ? 'selected' : ''}>${c}</option>`).join('');
+    const txns = Array.isArray(r.txns) ? r.txns : [];
+    const hasTxns = txns.length > 0;
+    const cb = computeCostBasis(txns);
+    const txnListHtml = txns.slice().sort((a,b) => (a.d||'').localeCompare(b.d||'')).map(tx => `
+      <div style="display:flex; align-items:center; gap:6px; font-size:12px; padding:3px 0;">
+        <span style="width:76px; color:var(--muted);">${tx.d || ''}</span>
+        <span style="width:36px; font-weight:600; color:${tx.t === 'BUY' ? 'var(--buy)' : 'var(--sell)'};">${tx.t === 'BUY' ? 'ซื้อ' : 'ขาย'}</span>
+        <span style="flex:1;" class="num">${tx.q} หุ้น @ $${(+tx.p).toFixed(2)}</span>
+        <button class="txn-del-btn" data-i="${i}" data-txid="${tx.id}" type="button">✕</button>
+      </div>
+    `).join('') || '<div style="font-size:12px; color:var(--muted); padding:4px 0;">ยังไม่มีประวัติ</div>';
 
     const card = document.createElement('div');
     card.className = 'holding-card';
@@ -738,9 +840,34 @@ function renderRows(){
       </div>
       <div class="card-row">
         <div class="field-group small-field">
-          <label>ต้นทุนเฉลี่ย/หุ้น ($, ไม่บังคับ)</label>
-          <input type="number" step="0.01" data-i="${i}" data-f="avgCost" value="${r.avgCost || 0}">
+          <label>ต้นทุนเฉลี่ย/หุ้น ($)${hasTxns ? ' — คำนวณจากประวัติ' : ' (ไม่บังคับ)'}</label>
+          ${hasTxns
+            ? `<input type="text" value="$${cb.avgCost.toFixed(4)}" disabled style="opacity:.7;">`
+            : `<input type="number" step="0.01" data-i="${i}" data-f="avgCost" value="${r.avgCost || 0}">`}
         </div>
+        ${hasTxns ? `
+        <div class="field-group small-field">
+          <label>Realized P&amp;L สะสม</label>
+          <div class="num ${cb.realized > 0 ? 'pnl-pos' : cb.realized < 0 ? 'pnl-neg' : 'pnl-flat'}" style="padding:8px 0; font-weight:600;">${cb.realized >= 0 ? '+' : ''}$${cb.realized.toFixed(2)}</div>
+        </div>` : ''}
+      </div>
+      <div class="card-row" style="margin-top:2px;">
+        <button class="btn-ghost txn-toggle-btn" data-i="${i}" type="button" style="width:100%; text-align:center; font-size:12.5px;">📝 ประวัติซื้อขาย (${txns.length})</button>
+      </div>
+      <div class="txn-panel" id="txnPanel-${i}" style="display:none;">
+        <div>${txnListHtml}</div>
+        <div class="card-row" style="gap:6px; margin-top:8px;">
+          <input type="date" class="txn-date" style="flex:1.3;" value="${new Date().toISOString().slice(0,10)}">
+          <select class="txn-type" style="flex:1;">
+            <option value="BUY">ซื้อ</option>
+            <option value="SELL">ขาย</option>
+          </select>
+        </div>
+        <div class="card-row" style="gap:6px; margin-top:6px;">
+          <input type="number" class="txn-qty" placeholder="จำนวนหุ้น" step="0.0001" style="flex:1;">
+          <input type="number" class="txn-price" placeholder="ราคา/หุ้น" step="0.01" style="flex:1;">
+        </div>
+        <button class="btn-ghost txn-add-btn" data-i="${i}" type="button" style="width:100%; margin-top:6px;">+ เพิ่มรายการ</button>
       </div>
       <div class="card-actions">
         <div class="card-actions-left">
@@ -759,6 +886,14 @@ function renderRows(){
     body.appendChild(card);
   });
 
+  // เปิด panel ประวัติซื้อขายที่เคยเปิดค้างไว้ก่อนหน้า (กัน panel ปิดเองทุกครั้งที่ re-render)
+  openTxnPanels.forEach(i => {
+    const panel = document.getElementById('txnPanel-' + i);
+    if (panel) panel.style.display = 'block';
+  });
+
+  updateTargetSumInfo();
+
   body.querySelectorAll('select[data-f="cat-select"]').forEach(sel => {
     sel.addEventListener('change', e => {
       const i = +e.target.dataset.i;
@@ -776,7 +911,7 @@ function renderRows(){
     });
   });
 
-  body.querySelectorAll('input').forEach(elm => {
+  body.querySelectorAll('input[data-f]').forEach(elm => {
     elm.addEventListener('change', e => {
       const i = +e.target.dataset.i, f = e.target.dataset.f;
       if (f === 'lock') rows[i].lock = e.target.checked;
@@ -787,6 +922,7 @@ function renderRows(){
         rows[i][f] = parseFloat(e.target.value) || 0;
       }
       saveRows();
+      if (f === 'tgt') updateTargetSumInfo();
     });
   });
 
@@ -803,7 +939,9 @@ function renderRows(){
 
   body.querySelectorAll('.del-btn').forEach(btn => {
     btn.addEventListener('click', e => {
-      rows.splice(+e.target.dataset.i, 1);
+      const i = +e.target.dataset.i;
+      rows.splice(i, 1);
+      openTxnPanels.delete(i);
       renderRows();
       saveRows();
     });
@@ -818,6 +956,55 @@ function renderRows(){
       [rows[i], rows[j]] = [rows[j], rows[i]];
       renderRows();
       saveRows();
+    });
+  });
+
+  body.querySelectorAll('.txn-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = +e.currentTarget.dataset.i;
+      const panel = document.getElementById('txnPanel-' + i);
+      const isOpen = panel.style.display !== 'none';
+      panel.style.display = isOpen ? 'none' : 'block';
+      if (isOpen) openTxnPanels.delete(i); else openTxnPanels.add(i);
+    });
+  });
+
+  body.querySelectorAll('.txn-del-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = +e.currentTarget.dataset.i;
+      const txid = e.currentTarget.dataset.txid;
+      rows[i].txns = (rows[i].txns || []).filter(t => t.id !== txid);
+      openTxnPanels.add(i);
+      saveRows();
+      renderRows();
+      renderRealizedPnl();
+    });
+  });
+
+  body.querySelectorAll('.txn-add-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const i = +e.currentTarget.dataset.i;
+      const panel = e.currentTarget.closest('.txn-panel');
+      const dateEl = panel.querySelector('.txn-date');
+      const typeEl = panel.querySelector('.txn-type');
+      const qtyEl = panel.querySelector('.txn-qty');
+      const priceEl = panel.querySelector('.txn-price');
+      const q = parseFloat(qtyEl.value), p = parseFloat(priceEl.value);
+      if(!q || q <= 0 || !p || p <= 0){
+        alert('กรอกจำนวนและราคาให้ถูกต้อง');
+        return;
+      }
+      if(!Array.isArray(rows[i].txns)) rows[i].txns = [];
+      rows[i].txns.push({
+        id: 'tx' + Date.now() + Math.random().toString(36).slice(2, 7),
+        d: dateEl.value || new Date().toISOString().slice(0,10),
+        t: typeEl.value === 'SELL' ? 'SELL' : 'BUY',
+        q, p
+      });
+      openTxnPanels.add(i);
+      saveRows();
+      renderRows();
+      renderRealizedPnl();
     });
   });
 }
@@ -838,7 +1025,7 @@ async function searchTickers(query){
 }
 
 document.getElementById('addRowBtn').addEventListener('click', () => {
-  rows.push({cat:"PHYSICAL", tk:"", price:0, shares:0, tgt:0, lock:false, avgCost:0});
+  rows.push({cat:"PHYSICAL", tk:"", price:0, shares:0, tgt:0, lock:false, avgCost:0, txns:[]});
   renderRows();
   saveRows();
 });
@@ -875,7 +1062,7 @@ document.getElementById('importFile').addEventListener('change', e => {
     try{
       const data = JSON.parse(evt.target.result);
       if(!Array.isArray(data.rows)) throw new Error('invalid');
-      rows = data.rows.map(r => ({ cat:r.cat||'', tk:r.tk||'', price:+r.price||0, shares:+r.shares||0, tgt:+r.tgt||0, lock:!!r.lock, avgCost:+r.avgCost||0 }));
+      rows = data.rows.map(r => ({ cat:r.cat||'', tk:r.tk||'', price:+r.price||0, shares:+r.shares||0, tgt:+r.tgt||0, lock:!!r.lock, avgCost:+r.avgCost||0, txns: Array.isArray(r.txns) ? r.txns.map(t => ({ id: t.id || ('tx'+Math.random().toString(36).slice(2,9)), d: t.d||'', t: t.t==='SELL'?'SELL':'BUY', q:+t.q||0, p:+t.p||0 })) : [] }));
       saveRows();
       if(typeof data.cash === 'number'){
         document.getElementById('cashInput').value = data.cash;
@@ -919,6 +1106,13 @@ function saveHistoryEntry(totalUsd, totalThb){
   hist.sort((a,b) => a.date.localeCompare(b.date));
   const trimmed = hist.slice(-365);
   localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+}
+function renderRealizedPnl(){
+  const total = rows.reduce((sum, r) => sum + computeCostBasis(r.txns || []).realized, 0);
+  const el = document.getElementById('perfRealized');
+  if(!el) return;
+  el.textContent = `${total >= 0 ? '+' : ''}$${total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  el.className = 'val ' + (total > 0 ? 'pnl-pos' : total < 0 ? 'pnl-neg' : 'pnl-flat');
 }
 function renderHistoryChart(){
   const hist = loadHistory();
@@ -968,6 +1162,7 @@ function renderHistoryChart(){
   }
 }
 renderHistoryChart();
+renderRealizedPnl();
 
 /* ---------------- Price / FX fetch ---------------- */
 async function fetchRate(){
@@ -1076,7 +1271,9 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
     }
     const diffAmount = Math.abs(diffShares * item.price);
 
-    const avgCost = item.avgCost || 0;
+    const txns = Array.isArray(item.txns) ? item.txns : [];
+    const cb = computeCostBasis(txns);
+    const avgCost = (txns.length > 0 && cb.qty > 0) ? cb.avgCost : (item.avgCost || 0);
     const hasCost = avgCost > 0;
     const pnl = hasCost ? (item.price - avgCost) * item.shares : 0;
     const pnlPct = hasCost ? ((item.price - avgCost) / avgCost * 100) : 0;
