@@ -268,7 +268,7 @@
   <header>
     <p class="eyebrow">PRIVATE LEDGER</p>
     <h1>Portfolio Rebalance</h1>
-    <p class="sub">คำนวณแผนซื้อ/ขายเพื่อปรับพอร์ตให้ตรงเป้าหมาย — ทำงานในเครื่อง ไม่ต้องมี server</p>
+    <p class="sub">คำนวณแผนปรับสมดุลพอร์ตการลงทุนให้ตรงตามสัดส่วนเป้าหมายที่กำหนดไว้ ประมวลผลข้อมูลทั้งหมดภายในเครื่อง</p>
 
     <!-- เมนูสลับหน้าหลัก -->
     <div class="nav-tabs">
@@ -368,7 +368,7 @@
   <div id="sectionMarkets" style="display:none; margin-top: 18px;">
     <div class="panel" style="padding: 12px;">
       <h2 style="margin-bottom: 10px; padding-left: 6px;">🌍 ภาพรวมตลาดโลก</h2>
-      <p class="panel-hint" style="padding-left: 6px;">ข้อมูลจาก TradingView แบบเรียลไทม์ ไม่ต้องใช้ API key แยกจากราคาพอร์ตของคุณ — ปัดแท็บด้านล่างเพื่อดูหมวดอื่น</p>
+      <p class="panel-hint" style="padding-left: 6px;">ข้อมูลตลาดแบบเรียลไทม์จาก TradingView เป็นอิสระจากข้อมูลราคาในพอร์ตของคุณ เลือกดูหมวดหมู่ต่าง ๆ ได้จากแท็บด้านล่าง</p>
       <div class="tradingview-widget-container">
         <div class="tradingview-widget-container__widget"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
@@ -439,7 +439,7 @@
   <div id="sectionPerformance" style="display:none; margin-top: 18px;">
     <div class="panel">
       <h2>📈 มูลค่าพอร์ตย้อนหลัง</h2>
-      <p class="panel-hint">บันทึกมูลค่าพอร์ตอัตโนมัติทุกครั้งที่กด "ดึงราคาอัตโนมัติ & คำนวณ" (1 บันทึกต่อวัน)</p>
+      <p class="panel-hint">ระบบจะบันทึกมูลค่าพอร์ตโดยอัตโนมัติทุกครั้งที่มีการคำนวณแผน Rebalance (บันทึกไม่เกินวันละ 1 รายการ)</p>
       <div class="chart-card" style="padding:14px;">
         <canvas id="chartHistory" height="220"></canvas>
       </div>
@@ -456,7 +456,7 @@
   <div id="sectionSettings" style="display:none; margin-top: 18px;">
     <div class="panel">
       <h2>🔑 Finnhub API Key</h2>
-      <p class="panel-hint">Key จะถูกเก็บไว้ในเครื่องคุณเท่านั้น (localStorage) ไม่ถูกฝังในโค้ดหรืออัพขึ้น GitHub อีกต่อไป สมัคร key ฟรีได้ที่ finnhub.io</p>
+      <p class="panel-hint">API Key จะถูกจัดเก็บไว้ในเครื่องของคุณเท่านั้น ไม่มีการส่งข้อมูลนี้ออกไปยังเซิร์ฟเวอร์ภายนอกใด ๆ สามารถขอรับ API Key ได้โดยไม่มีค่าใช้จ่ายที่เว็บไซต์ finnhub.io</p>
       <div class="field">
         <label>API Key</label>
         <input type="text" id="apiKeyInput" placeholder="วาง Finnhub API key ที่นี่">
@@ -467,13 +467,13 @@
     <div class="panel">
       <h2>⚖️ กฎการ Rebalance</h2>
       <div class="field" style="margin-bottom:14px;">
-        <label>Threshold ความคลาดเคลื่อน (%) — เสนอ BUY/SELL เฉพาะเมื่อสัดส่วนเบี่ยงเกินค่านี้</label>
+        <label>ค่าความคลาดเคลื่อนที่ยอมรับได้ (%) — ระบบจะแนะนำคำสั่งซื้อ/ขายเฉพาะเมื่อสัดส่วนถือครองเบี่ยงเบนจากเป้าหมายเกินกว่าค่านี้</label>
         <input type="number" id="thresholdInput" step="0.1" min="0" value="0">
       </div>
       <div class="toggle-row">
         <div>
-          <div class="t-label">รองรับหุ้นเศษ (Fractional Shares)</div>
-          <div class="t-desc">อนุญาตให้แผนซื้อ/ขายเป็นทศนิยม เหมาะกับ ETF ที่ซื้อเศษหุ้นได้</div>
+          <div class="t-label">รองรับการซื้อขายเศษหุ้น (Fractional Shares)</div>
+          <div class="t-desc">เปิดใช้งานเพื่อให้คำแนะนำการซื้อ/ขายเป็นจำนวนทศนิยมได้ เหมาะสำหรับสินทรัพย์ที่รองรับการซื้อขายเศษหุ้น</div>
         </div>
         <label class="switch"><input type="checkbox" id="fractionalToggle"><span class="slider"></span></label>
       </div>
@@ -484,7 +484,7 @@
 
     <div class="panel">
       <h2>💾 ข้อมูล & สำรอง</h2>
-      <p class="panel-hint">ข้อมูลพอร์ตของคุณอยู่ใน localStorage ของเบราว์เซอร์เท่านั้น ถ้าล้าง cache หรือเปลี่ยนเครื่องข้อมูลจะหาย — สำรองเก็บไว้เป็นไฟล์ JSON เผื่อไว้ (ไฟล์นี้ไม่รวม API key)</p>
+      <p class="panel-hint">ข้อมูลพอร์ตของคุณจัดเก็บอยู่ในเครื่องนี้เท่านั้น หากล้างแคชเบราว์เซอร์หรือเปลี่ยนอุปกรณ์ ข้อมูลจะไม่ถูกโอนย้ายให้โดยอัตโนมัติ จึงแนะนำให้สำรองข้อมูลเป็นไฟล์ JSON อย่างสม่ำเสมอ (ไฟล์สำรองไม่รวม API Key เพื่อความปลอดภัย)</p>
       <div class="io-row">
         <button class="btn-ghost" id="exportBtn" type="button">⬇️ ส่งออกข้อมูล (JSON)</button>
         <label class="btn-ghost" for="importFile" style="cursor:pointer;">⬆️ นำเข้าข้อมูล (JSON)</label>
@@ -495,7 +495,7 @@
 
     <div class="panel">
       <h2>🔒 ล็อกหน้าจอด้วย PIN</h2>
-      <p class="panel-hint" id="pinCurrentStatus">ยังไม่ได้ตั้ง PIN</p>
+      <p class="panel-hint" id="pinCurrentStatus">ยังไม่ได้ตั้งค่ารหัส PIN</p>
       <div class="row">
         <div class="field">
           <label>ตั้ง/เปลี่ยน PIN (ตัวเลข 4-8 หลัก)</label>
@@ -507,7 +507,7 @@
         <button class="btn-ghost" id="clearPinBtn" type="button">ลบ PIN</button>
       </div>
       <div class="banner-warn">
-        ⚠️ นี่เป็นเพียงหน้าจอล็อกเบื้องต้น ป้องกันคนแอบดูจอเผิน ๆ เท่านั้น ไม่ใช่การเข้ารหัสข้อมูลจริง — ข้อมูลใน localStorage ยังไม่ถูกเข้ารหัส ใครที่เข้าถึงเครื่อง/เบราว์เซอร์ระดับไฟล์ระบบยังเปิดดูได้อยู่
+        ⚠️ คุณสมบัตินี้เป็นเพียงการล็อกหน้าจอเบื้องต้นเพื่อป้องกันการเข้าถึงโดยบุคคลอื่น มิใช่การเข้ารหัสข้อมูล ข้อมูลที่จัดเก็บในเครื่องยังไม่ได้ผ่านการเข้ารหัส ผู้ที่สามารถเข้าถึงไฟล์ระบบของอุปกรณ์โดยตรงจะยังสามารถเข้าถึงข้อมูลดังกล่าวได้
       </div>
 
       <p class="panel-hint" id="bioStatusInfo" style="margin-top:16px;"></p>
@@ -516,12 +516,12 @@
         <button class="btn-ghost" id="clearBioBtn" type="button">ลบข้อมูลไบโอเมตริกซ์</button>
       </div>
       <div class="banner-info">
-        ต้องตั้ง PIN ไว้เป็นตัวสำรองก่อนถึงจะเปิดใช้ไบโอเมตริกซ์ได้ (เผื่อกรณีลายนิ้วมือ/Face ID ใช้ไม่ได้) — การยืนยันเกิดขึ้นในเครื่องผ่านเซนเซอร์ของอุปกรณ์เท่านั้น ไม่มีการส่งข้อมูลไปที่ใด แต่เนื่องจากแอปนี้ไม่มี server ตรวจสอบ จึงเป็นการล็อกหน้าจอเช่นเดียวกับ PIN ไม่ใช่การเข้ารหัสข้อมูล
+        จำเป็นต้องตั้งค่ารหัส PIN ไว้เป็นช่องทางสำรอง สำหรับกรณีที่ไม่สามารถยืนยันตัวตนด้วยไบโอเมตริกซ์ได้ กระบวนการยืนยันตัวตนดำเนินการภายในอุปกรณ์ผ่านเซนเซอร์โดยตรงเท่านั้น ไม่มีการส่งข้อมูลออกนอกเครื่อง ทั้งนี้คุณสมบัตินี้มีลักษณะเป็นการล็อกหน้าจอเช่นเดียวกับรหัส PIN มิใช่การเข้ารหัสข้อมูล
       </div>
     </div>
   </div>
 
-  <footer>ราคาปิดล่าสุดจาก Finnhub · อัตราแลกเปลี่ยนจาก frankfurter.app · คำนวณในเครื่องทั้งหมด</footer>
+  <footer>ข้อมูลราคาจาก Finnhub · อัตราแลกเปลี่ยนจาก Frankfurter.app · ประมวลผลข้อมูลทั้งหมดภายในเครื่อง</footer>
 </div>
 
 <datalist id="tickerSuggestions"></datalist>
@@ -594,7 +594,7 @@ document.getElementById('apiKeyInput').value = settings.apiKey;
 document.getElementById('thresholdInput').value = settings.threshold;
 document.getElementById('fractionalToggle').checked = settings.fractional;
 if(!settings.apiKey){
-  document.getElementById('apiKeyWarn').innerHTML = '<div class="banner-warn">ยังไม่ได้ใส่ API Key — แอปจะไม่ดึงราคาล่าสุดให้อัตโนมัติ และจะใช้ราคาที่คุณกรอกเองแทน</div>';
+  document.getElementById('apiKeyWarn').innerHTML = '<div class="banner-warn">ยังไม่ได้ตั้งค่า API Key ระบบจะไม่สามารถดึงราคาล่าสุดให้โดยอัตโนมัติ และจะใช้ราคาที่ระบุไว้ในแต่ละรายการแทน</div>';
 }
 
 document.getElementById('saveSettingsBtn').addEventListener('click', () => {
@@ -603,9 +603,9 @@ document.getElementById('saveSettingsBtn').addEventListener('click', () => {
   settings.fractional = document.getElementById('fractionalToggle').checked;
   saveSettings();
   document.getElementById('apiKeyWarn').innerHTML = settings.apiKey ? '' :
-    '<div class="banner-warn">ยังไม่ได้ใส่ API Key — แอปจะไม่ดึงราคาล่าสุดให้อัตโนมัติ และจะใช้ราคาที่คุณกรอกเองแทน</div>';
+    '<div class="banner-warn">ยังไม่ได้ตั้งค่า API Key ระบบจะไม่สามารถดึงราคาล่าสุดให้โดยอัตโนมัติ และจะใช้ราคาที่ระบุไว้ในแต่ละรายการแทน</div>';
   const st = document.getElementById('settingsStatus');
-  st.textContent = 'บันทึกการตั้งค่าแล้ว ✓';
+  st.textContent = 'บันทึกการตั้งค่าเรียบร้อยแล้ว';
   setTimeout(() => { st.textContent = ''; }, 2500);
   renderRows(); // step ของ shares จะเปลี่ยนตาม fractional
 });
@@ -614,14 +614,14 @@ document.getElementById('saveSettingsBtn').addEventListener('click', () => {
 const PIN_KEY = 'bullion_pin';
 function refreshPinStatusText(){
   const pin = localStorage.getItem(PIN_KEY);
-  document.getElementById('pinCurrentStatus').textContent = pin ? 'ตั้ง PIN ไว้แล้ว (' + pin.length + ' หลัก)' : 'ยังไม่ได้ตั้ง PIN';
+  document.getElementById('pinCurrentStatus').textContent = pin ? 'ตั้งค่ารหัส PIN ไว้แล้ว (' + pin.length + ' หลัก)' : 'ยังไม่ได้ตั้งค่ารหัส PIN';
 }
 refreshPinStatusText();
 
 document.getElementById('setPinBtn').addEventListener('click', () => {
   const val = document.getElementById('pinInput').value.trim();
   if(val.length < 4 || val.length > 8 || !/^\d+$/.test(val)){
-    document.getElementById('ioStatus').textContent = 'PIN ต้องเป็นตัวเลข 4-8 หลัก';
+    document.getElementById('ioStatus').textContent = 'รหัส PIN ต้องเป็นตัวเลขจำนวน 4-8 หลัก';
     return;
   }
   localStorage.setItem(PIN_KEY, val);
@@ -692,7 +692,7 @@ async function isBioAvailable(){
 function refreshBioStatusText(){
   const el = document.getElementById('bioStatusInfo');
   const has = !!localStorage.getItem(BIO_KEY);
-  el.textContent = has ? 'ตั้งค่าไบโอเมตริกซ์ไว้แล้ว ✓' : 'ยังไม่ได้ตั้งค่าไบโอเมตริกซ์';
+  el.textContent = has ? 'เปิดใช้งานการยืนยันตัวตนด้วยไบโอเมตริกซ์แล้ว' : 'ยังไม่ได้เปิดใช้งานการยืนยันตัวตนด้วยไบโอเมตริกซ์';
 }
 refreshBioStatusText();
 
@@ -701,13 +701,13 @@ refreshBioStatusText();
   const setupBtn = document.getElementById('setupBioBtn');
   if(!available){
     setupBtn.disabled = true;
-    setupBtn.textContent = '🔐 อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับ';
+    setupBtn.textContent = '🔐 อุปกรณ์นี้ไม่รองรับคุณสมบัตินี้';
   }
 })();
 
 document.getElementById('setupBioBtn').addEventListener('click', async () => {
   if(!localStorage.getItem(PIN_KEY)){
-    document.getElementById('bioStatusInfo').textContent = 'ต้องตั้ง PIN ไว้ก่อน (เป็นตัวสำรอง) ถึงจะตั้งไบโอเมตริกซ์ได้';
+    document.getElementById('bioStatusInfo').textContent = 'กรุณาตั้งค่ารหัส PIN สำรองก่อน จึงจะสามารถเปิดใช้งานไบโอเมตริกซ์ได้';
     return;
   }
   try{
@@ -725,9 +725,9 @@ document.getElementById('setupBioBtn').addEventListener('click', async () => {
     });
     localStorage.setItem(BIO_KEY, bytesToB64(cred.rawId));
     refreshBioStatusText();
-    document.getElementById('bioStatusInfo').textContent = 'ตั้งค่าไบโอเมตริกซ์สำเร็จ ✓';
+    document.getElementById('bioStatusInfo').textContent = 'เปิดใช้งานการยืนยันตัวตนด้วยไบโอเมตริกซ์สำเร็จ';
   }catch(e){
-    document.getElementById('bioStatusInfo').textContent = 'ตั้งค่าไม่สำเร็จ หรือถูกยกเลิก ลองใหม่อีกครั้ง';
+    document.getElementById('bioStatusInfo').textContent = 'ไม่สามารถดำเนินการได้ หรือการดำเนินการถูกยกเลิก กรุณาลองใหม่อีกครั้ง';
   }
 });
 
@@ -782,10 +782,10 @@ function updateTargetSumInfo(){
   const cashImplied = 100 - sum;
   if (sum > 100.05) {
     el.className = 'banner-warn';
-    el.innerHTML = `⚠️ รวม Target ทุกรายการ = ${sum.toFixed(1)}% ซึ่งเกิน 100% — ตรวจสอบตัวเลขอีกครั้ง`;
+    el.innerHTML = `⚠️ สัดส่วนเป้าหมายรวมของสินทรัพย์ทั้งหมดเท่ากับ ${sum.toFixed(1)}% ซึ่งเกิน 100% กรุณาตรวจสอบความถูกต้องของตัวเลข`;
   } else {
     el.className = 'banner-info';
-    el.innerHTML = `รวม Target ของสินทรัพย์ = ${sum.toFixed(1)}% (เท่ากับตั้งเป้าเงินสดไว้โดยนัย ${cashImplied.toFixed(1)}%)`;
+    el.innerHTML = `สัดส่วนเป้าหมายรวมของสินทรัพย์: ${sum.toFixed(1)}% (ส่วนต่างที่เหลือ ${cashImplied.toFixed(1)}% ถือเป็นสัดส่วนเป้าหมายของเงินสดโดยปริยาย)`;
   }
 }
 
@@ -1051,7 +1051,7 @@ document.getElementById('exportBtn').addEventListener('click', () => {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  document.getElementById('ioStatus').textContent = 'ส่งออกไฟล์สำรองแล้ว ✓';
+  document.getElementById('ioStatus').textContent = 'ส่งออกไฟล์สำรองข้อมูลเรียบร้อยแล้ว';
 });
 
 document.getElementById('importFile').addEventListener('change', e => {
@@ -1079,9 +1079,9 @@ document.getElementById('importFile').addEventListener('change', e => {
         document.getElementById('fractionalToggle').checked = settings.fractional;
       }
       renderRows();
-      document.getElementById('ioStatus').textContent = 'นำเข้าข้อมูลสำเร็จ ✓';
+      document.getElementById('ioStatus').textContent = 'นำเข้าข้อมูลเรียบร้อยแล้ว';
     }catch(err){
-      document.getElementById('ioStatus').textContent = 'ไฟล์ไม่ถูกต้อง นำเข้าไม่สำเร็จ';
+      document.getElementById('ioStatus').textContent = 'รูปแบบไฟล์ไม่ถูกต้อง ไม่สามารถนำเข้าข้อมูลได้';
     }
     e.target.value = '';
   };
@@ -1238,7 +1238,7 @@ document.getElementById('calcBtn').addEventListener('click', async () => {
       await new Promise(r => setTimeout(r, 120));
     }
   } else {
-    statusLine.textContent = 'ไม่มี API Key — ใช้ราคาที่กรอกไว้เอง (ตั้งค่าที่แท็บ ⚙️ ตั้งค่า เพื่อดึงราคาอัตโนมัติ)';
+    statusLine.textContent = 'ยังไม่ได้ตั้งค่า API Key ระบบจะใช้ราคาที่ระบุไว้ในแต่ละรายการ (ตั้งค่า API Key ได้ที่แท็บ ⚙️ ตั้งค่า เพื่อดึงราคาโดยอัตโนมัติ)';
   }
   renderRows();
   saveRows();
